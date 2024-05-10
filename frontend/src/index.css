@@ -5,5 +5,14 @@
   --primary-yellow: #ffab2b;
   --secondary-white: #fdfefd;
   --secondary-black: #232222;
+  --font-header: 1.75rem 'Montserrat Variable', Arial, sans-serif;
   --font-body: 1rem 'Montserrat Variable', Arial, sans-serif;
+  --font-small: 0.75rem 'Montserrat Variable', Arial, sans-serif;
+  --pickup-width: 18.5rem;
+}
+body {
+  margin: 0;
+  background-color: var(--secondary-white);
+  font: var(--font-body);
+  color: var(--secondary-black);
 }

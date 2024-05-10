@@ -1,7 +1,3 @@
-:root {
-  --pickup-width: 18.5rem;
-}
-
 .pickup {
   display: flex;
   width: var(--pickup-width);

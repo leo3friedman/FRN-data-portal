@@ -9,5 +9,13 @@ export default {
 export const Primary = {
   args: {
     children: 'Submit New Pickup Data',
+    size: 'default',
+  },
+}
+
+export const Small = {
+  args: {
+    children: 'Submit New Pickup Data',
+    size: 'small',
   },
 }

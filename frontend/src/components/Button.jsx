@@ -1,7 +1,7 @@
 import styles from './Button.module.css'
 
 export default function Button(props) {
-  const { children, size } = props
+  const { children, size, onClick } = props
 
   const sizeClasses = {
     small: 'smallSize',
@@ -13,7 +13,9 @@ export default function Button(props) {
     : sizeClasses.default
 
   return (
-    <button className={`${styles.button} ${styles[sizeClass]}`}>
+    <button
+      className={`${styles.button} ${styles[sizeClass]}`}
+      onClick={onClick}>
       {children}
     </button>
   )

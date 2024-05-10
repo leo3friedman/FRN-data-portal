@@ -1,13 +1,14 @@
-import { Button } from '../components/index'
+import { Pickup } from '../components/index'
 import '../index.css'
 import '@fontsource-variable/montserrat'
 
 export default {
-  component: Button,
+  component: Pickup,
 }
 
 export const Primary = {
   args: {
-    children: 'Submit New Pickup Data',
+    pickupDate: '4/1/24',
+    donorAgency: 'Sprouts',
   },
 }

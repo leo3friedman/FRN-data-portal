@@ -1,0 +1,36 @@
+.stickyContent {
+  position: sticky;
+  top: 0;
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 2rem;
+  background-color: var(--secondary-white);
+}
+
+.logout:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: var(--font-header);
+  padding: 2rem 0 2rem 0;
+  background-color: var(--secondary-white);
+}
+
+.pickupList {
+  list-style-type: none;
+  padding: 0;
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}

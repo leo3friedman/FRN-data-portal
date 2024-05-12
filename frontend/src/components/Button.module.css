@@ -1,0 +1,21 @@
+.button {
+  all: unset;
+  font-size: 14px;
+  outline: 1px solid var(--secondary-black);
+  width: fit-content;
+}
+
+.button:hover {
+  cursor: pointer;
+  outline-width: 2px;
+}
+
+.defaultSize {
+  padding: 1rem;
+  font: var(--font-body);
+}
+
+.smallSize {
+  padding: 0.75rem;
+  font: var(--font-small);
+}

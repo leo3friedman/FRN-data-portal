@@ -1,0 +1,8 @@
+.page {
+  display: flex;
+  justify-content: center;
+}
+
+.pageContent {
+  width: calc(var(--pickup-width) + 1rem);
+}

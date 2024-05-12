@@ -1,0 +1,31 @@
+.pickup {
+  display: flex;
+  width: var(--pickup-width);
+  padding: 0.75rem 1rem;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box; /* Firefox, other Gecko */
+  box-sizing: border-box;
+  outline: 1px solid var(--secondary-black);
+  font: var(--font-body);
+}
+
+.pickup:hover {
+  cursor: pointer;
+  outline-width: 2px;
+}
+
+.pickupDate {
+  width: calc(var(--pickup-width) * 0.25);
+  overflow: hidden;
+}
+
+.donorAgency {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editIcon {
+  margin-left: auto;
+  width: 1rem;
+}

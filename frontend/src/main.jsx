@@ -25,6 +25,7 @@ const router = createBrowserRouter([
     path: 'pickups/new',
     element: <FormPage isNewPickup={true} />,
     errorElement: <ErrorPage />,
+    loader: pickupLoader,
   },
 ])
 

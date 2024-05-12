@@ -11,7 +11,7 @@ export default function PickupsPage() {
   return (
     <PageLayout>
       <header className={styles.pageHeader}>
-        Pickups{' '}
+        Pickups
         <Button size='small' onClick={() => navigate('/pickups/new')}>
           New Pickup
         </Button>

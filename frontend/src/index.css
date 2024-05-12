@@ -9,6 +9,7 @@
   --font-body: 1rem 'Montserrat Variable', Arial, sans-serif;
   --font-small: 0.75rem 'Montserrat Variable', Arial, sans-serif;
   --pickup-width: 18.5rem;
+  --page-padding-top: 4rem;
 }
 body {
   margin: 0;

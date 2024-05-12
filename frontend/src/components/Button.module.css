@@ -2,6 +2,7 @@
   all: unset;
   font-size: 14px;
   outline: 1px solid var(--secondary-black);
+  width: fit-content;
 }
 
 .button:hover {

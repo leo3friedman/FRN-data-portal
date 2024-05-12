@@ -1,0 +1,14 @@
+.pageTitle {
+  padding: 4rem 0;
+  font: var(--font-header);
+  text-align: center;
+}
+
+.login {
+  padding: 4rem 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}

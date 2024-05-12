@@ -13,6 +13,7 @@
 
 .returnToPickups:hover {
   cursor: pointer;
+  text-decoration: underline;
 }
 
 .pageHeader {

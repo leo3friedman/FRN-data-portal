@@ -1,11 +1,27 @@
+.stickyContent {
+  position: sticky;
+  top: 0;
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 2rem;
+  background-color: var(--secondary-white);
+}
+
+.logout:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .pageHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   font: var(--font-header);
-  padding: 4rem 0 2rem 0;
-  position: sticky;
-  top: 0;
+  padding: 2rem 0 2rem 0;
   background-color: var(--secondary-white);
 }
 

@@ -1,7 +1,7 @@
 import { useLoaderData, useNavigate } from 'react-router-dom'
 import { Button } from '../components/index'
 import { Pickup, PageLayout } from '../components/index.js'
-
+import logOutIcon from '../assets/logOutIcon.svg'
 import styles from './PickupsPage.module.css'
 
 export default function PickupsPage() {
@@ -10,12 +10,19 @@ export default function PickupsPage() {
 
   return (
     <PageLayout>
-      <header className={styles.pageHeader}>
-        Pickups
-        <Button size='small' onClick={() => navigate('/pickups/new')}>
-          New Pickup
-        </Button>
-      </header>
+      <div className={styles.stickyContent}>
+        <nav className={styles.logout} onClick={() => navigate('/login')}>
+          <img src={logOutIcon} />
+          Logout
+        </nav>
+        <header className={styles.pageHeader}>
+          Pickups
+          <Button size='small' onClick={() => navigate('/pickups/new')}>
+            New Pickup
+          </Button>
+        </header>
+      </div>
+
       <ul className={styles.pickupList}>
         {pickups.map((pickup) => (
           <li key={pickup?.id}>

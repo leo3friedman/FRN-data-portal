@@ -7,6 +7,7 @@ import { pickupsLoader, pickupLoader } from './routes/pickups.js'
 import PickupsPage from './pages/PickupsPage.jsx'
 import FormPage from './pages/FormPage.jsx'
 import ErrorPage from './pages/ErrorPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -16,16 +17,21 @@ const router = createBrowserRouter([
     loader: pickupsLoader,
   },
   {
-    path: 'pickups/:pickupId',
+    path: '/pickups/:pickupId',
     element: <FormPage />,
     errorElement: <ErrorPage />,
     loader: pickupLoader,
   },
   {
-    path: 'pickups/new',
+    path: '/pickups/new',
     element: <FormPage isNewPickup={true} />,
     errorElement: <ErrorPage />,
     loader: pickupLoader,
+  },
+  {
+    path: '/login',
+    element: <LoginPage />,
+    errorElement: <ErrorPage />,
   },
 ])
 

@@ -3,6 +3,7 @@ import { google } from 'googleapis'
 import url from 'url'
 import express from 'express'
 import dotenv from 'dotenv'
+import axios from 'axios'
 
 dotenv.config()
 
@@ -50,5 +51,30 @@ router.get('/oauth2callback', async (req, res) => {
     res.redirect('http://localhost:5173/')
   }
 })
+
+export async function isValidToken(refreshToken) {
+  try {
+    const response = await axios.post(
+      'https://oauth2.googleapis.com/token',
+      null,
+      {
+        params: {
+          refresh_token: refreshToken,
+          client_id: process.env.CLIENT_ID,
+          client_secret: process.env.CLIENT_SECRET,
+          grant_type: 'refresh_token',
+        },
+      }
+    )
+
+    const accessToken = response?.data?.access_token
+    // TODO: use accessToken to verify the account email is whitelisted
+
+    return true
+  } catch (error) {
+    console.log(error)
+    return false
+  }
+}
 
 export default router

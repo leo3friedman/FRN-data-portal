@@ -1,6 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import sampleData from './sampleData.json' assert { type: 'json' }
+import { isValidToken } from './loginRoutes.js'
 
 dotenv.config()
 
@@ -27,8 +28,15 @@ const defaultPickup = {
   refrigeratedTempEnd: 0,
 }
 
-router.get('/pickups', (req, res) => {
-  // TODO: replace with real data
+router.get('/pickups', async (req, res) => {
+  // validate user is signed in
+  const token = req?.cookies?.token
+  const isValid = await isValidToken(token)
+  if (!isValid) {
+    return res.status(401).json({ error: 'Not signed in!' })
+  }
+
+  //   TODO: replace with real fetched pickups
   const pickupData = sampleData
 
   const pickups = pickupData.map((pickup) => {
@@ -43,11 +51,21 @@ router.get('/pickups', (req, res) => {
   res.json(pickups)
 })
 
-router.get('/pickups/new', (req, res) => {
+router.get('/pickups/new', async (req, res) => {
+  const token = req?.cookies?.token
+  const isValid = await isValidToken(token)
+  if (!isValid) {
+    return res.status(401).json({ error: 'Not signed in!' })
+  }
   res.json(defaultPickup)
 })
 
-router.get('/pickups/:pickupId', (req, res) => {
+router.get('/pickups/:pickupId', async (req, res) => {
+  const token = req?.cookies?.token
+  const isValid = await isValidToken(token)
+  if (!isValid) {
+    return res.status(401).json({ error: 'Not signed in!' })
+  }
   const id = req?.params?.pickupId
 
   if (isNaN(id)) {
@@ -65,6 +83,9 @@ router.get('/pickups/:pickupId', (req, res) => {
 
   res.json(parsedPickup)
 })
+
+// TODO: create post route for creating a new pickup + editing a pickup
+// TODO: make sure to validate if signed in before (implementation in /pickups route)
 
 function parsePickup(pickup) {
   const pickupDate = toPickupDate(pickup?.['Pickup Date'])

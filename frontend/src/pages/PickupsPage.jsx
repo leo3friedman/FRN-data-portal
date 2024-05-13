@@ -1,12 +1,31 @@
-import { useLoaderData, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/index'
 import { Pickup, PageLayout } from '../components/index.js'
 import logOutIcon from '../assets/logOutIcon.svg'
 import styles from './PickupsPage.module.css'
 
 export default function PickupsPage() {
-  const pickups = useLoaderData()
   const navigate = useNavigate()
+  const [pickups, setPickups] = useState([])
+
+  async function loadPickups() {
+    const response = await fetch('http://localhost:3000/pickups', {
+      method: 'GET',
+      credentials: 'include',
+    })
+    if (!response.ok) {
+      if (response.status === 401) {
+        navigate('/login')
+      }
+    }
+    const result = await response.json()
+    setPickups(result)
+  }
+
+  useEffect(() => {
+    loadPickups()
+  }, [])
 
   return (
     <PageLayout>
@@ -24,15 +43,19 @@ export default function PickupsPage() {
       </div>
 
       <ul className={styles.pickupList}>
-        {pickups.map((pickup) => (
-          <li key={pickup?.id}>
-            <Pickup
-              pickupId={pickup?.id}
-              pickupDate={pickup?.pickupDate}
-              donorAgency={pickup?.donorAgency}
-            />
-          </li>
-        ))}
+        {pickups && pickups.length ? (
+          pickups.map((pickup) => (
+            <li key={pickup?.id}>
+              <Pickup
+                pickupId={pickup?.id}
+                pickupDate={pickup?.pickupDate}
+                donorAgency={pickup?.donorAgency}
+              />
+            </li>
+          ))
+        ) : (
+          <div>No pickups found</div>
+        )}
       </ul>
     </PageLayout>
   )

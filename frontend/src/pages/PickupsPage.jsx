@@ -9,6 +9,16 @@ export default function PickupsPage() {
   const navigate = useNavigate()
   const [pickups, setPickups] = useState([])
 
+  async function logout() {
+    const response = await fetch('http://localhost:3000/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    if (response.ok) {
+      navigate('/login')
+    }
+  }
+
   async function loadPickups() {
     const response = await fetch('http://localhost:3000/pickups', {
       method: 'GET',
@@ -30,7 +40,7 @@ export default function PickupsPage() {
   return (
     <PageLayout>
       <div className={styles.stickyContent}>
-        <nav className={styles.logout} onClick={() => navigate('/login')}>
+        <nav className={styles.logout} onClick={logout}>
           <img src={logOutIcon} />
           Logout
         </nav>

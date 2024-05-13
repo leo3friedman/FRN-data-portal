@@ -7,15 +7,6 @@ export default function FormPage(props) {
   const { isNewPickup } = props
   const navigate = useNavigate()
   const pickup = useLoaderData()
-  const pickupDate = toDate(pickup?.pickupDate)
-
-  // Assuming all pickup operations occur in PST
-  function toDate(pastDate = null) {
-    const date = new Date(pastDate)
-    const offset = date.getTimezoneOffset()
-    const myDate = new Date(date.getTime() - offset * 60 * 1000)
-    return myDate.toISOString().split('T')[0]
-  }
 
   return (
     <PageLayout>
@@ -41,7 +32,7 @@ export default function FormPage(props) {
             <li>
               <VendorInfoField
                 label='Pickup Date'
-                defaultValue={pickupDate}
+                defaultValue={pickup?.pickupDate}
                 inputType='date'
                 required
               />

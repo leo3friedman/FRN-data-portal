@@ -1,21 +1,34 @@
-import { useLoaderData, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button, PageLayout } from '../components/index.js'
 import arrowLeftIcon from '../assets/arrowLeftIcon.svg'
 import styles from './FormPage.module.css'
+import { useParams } from 'react-router-dom'
 
 export default function FormPage(props) {
   const { isNewPickup } = props
+  const { pickupId } = useParams()
   const navigate = useNavigate()
-  const pickup = useLoaderData()
-  const pickupDate = toDate(pickup?.pickupDate)
+  const [pickup, setPickup] = useState({})
 
-  // Assuming all pickup operations occur in PST
-  function toDate(pastDate = null) {
-    const date = new Date(pastDate)
-    const offset = date.getTimezoneOffset()
-    const myDate = new Date(date.getTime() - offset * 60 * 1000)
-    return myDate.toISOString().split('T')[0]
+  async function loadPickup() {
+    const URL = `http://localhost:3000/pickups/${isNewPickup ? 'new' : pickupId}`
+    const response = await fetch(URL, {
+      method: 'GET',
+      credentials: 'include',
+    })
+    if (!response.ok) {
+      if (response.status === 401) {
+        navigate('/login')
+      }
+    }
+    const result = await response.json()
+    setPickup(result)
   }
+
+  useEffect(() => {
+    loadPickup()
+  }, [])
 
   return (
     <PageLayout>
@@ -41,7 +54,7 @@ export default function FormPage(props) {
             <li>
               <VendorInfoField
                 label='Pickup Date'
-                defaultValue={pickupDate}
+                defaultValue={pickup?.pickupDate}
                 inputType='date'
                 required
               />

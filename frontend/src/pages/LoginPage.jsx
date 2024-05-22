@@ -1,9 +1,7 @@
 import { Button, PageLayout } from '../components/index.js'
 import styles from './LoginPage.module.css'
-import { useNavigate } from 'react-router-dom'
 
 export default function LoginPage() {
-  const navigate = useNavigate()
   return (
     <PageLayout>
       <header className={styles.pageTitle}>
@@ -11,7 +9,10 @@ export default function LoginPage() {
       </header>
       <div className={styles.login}>
         <div>Please sign in to continue</div>
-        <Button onClick={() => navigate('/')}>Sign in with Google</Button>
+        <Button
+          onClick={() => (location.href = 'http://localhost:3000/googleauth')}>
+          Sign in with Google
+        </Button>
       </div>
     </PageLayout>
   )

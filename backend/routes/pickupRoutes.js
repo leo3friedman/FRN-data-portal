@@ -10,6 +10,8 @@ dotenv.config();
 
 const router = express.Router();
 
+router.use(express.json()); // Ensure the body is parsed
+
 const auth = new GoogleAuth({
   credentials: credentials,
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
@@ -54,8 +56,8 @@ router.get("/pickups", async (req, res) => {
 
     const columnHeaders = pickupData[0];
 
-    const pickupDataJsons = pickupData.slice(1).map(pickup => {
-      const pickupJson = {}
+    const pickupDataJsons = pickupData.slice(1).map((pickup) => {
+      const pickupJson = {};
       columnHeaders.forEach((header, index) => {
         pickupJson[header] = pickup[index];
       });
@@ -109,8 +111,8 @@ router.get("/pickups/:pickupId", async (req, res) => {
 
     const columnHeaders = pickupData[0];
 
-    const pickupDataJsons = pickupData.slice(1).map(pickup => {
-      const pickupJson = {}
+    const pickupDataJsons = pickupData.slice(1).map((pickup) => {
+      const pickupJson = {};
       columnHeaders.forEach((header, index) => {
         pickupJson[header] = pickup[index];
       });
@@ -123,18 +125,63 @@ router.get("/pickups/:pickupId", async (req, res) => {
       console.error("Pickup Not Found! ");
       return res.status(404).json({ error: "Pickup Not Found!" });
     }
-    
+
     const parsedPickup = parsePickup(pickup);
 
     res.json(parsedPickup);
-
   } catch (error) {
     console.error("error reading sheet: ", error);
     return res.status(500).json({ error: "Error reading sheet" });
   }
 });
 
-// TODO: create post route for creating a new pickup + editing a pickup
+router.put("/pickups/new", async (req, res) => {
+  // const token = req?.cookies?.token;
+  // const isValid = await isValidToken(token);
+  // if (!isValid) {
+  //   return res.status(401).json({ error: "Not signed in!" });
+  // }
+
+  const sheets = google.sheets({ version: "v4", auth });
+  const sheetId = "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ"
+  try {
+    // fetch existing data to get column headers
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: "Sheet1!A1:R",
+    });
+    const pickupData = sheetsResponse.data.values;
+
+    const columnHeaders = pickupData[0];
+
+    // The values to insert
+    const new_row = [];
+
+    columnHeaders.forEach((header) => {
+      new_row.push(req.body[header]);
+    });
+
+    const values = [new_row]
+
+    const resource = {
+      values,
+    };
+
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: "Sheet1",
+      valueInputOption: "RAW",
+      resource,
+    });
+
+    console.log("Row added:", response.data.updates.updatedRange);
+    res.status(200).send("Row added successfully");
+  } catch (error) {
+    console.error("Error adding new pickup ", error);
+    return res.status(500).json({ error: "Error adding new Pickup" });
+  }
+});
+
 // TODO: make sure to validate if signed in before (implementation in /pickups route)
 
 function parsePickup(pickup) {

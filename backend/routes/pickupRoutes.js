@@ -52,9 +52,6 @@ router.get("/pickups", async (req, res) => {
     });
     const pickupData = sheetsResponse.data.values;
 
-    console.log("Data:");
-    console.log(pickupData);
-
     const columnHeaders = pickupData[0];
 
     const pickupDataJsons = pickupData.slice(1).map(pickup => {
@@ -102,16 +99,39 @@ router.get("/pickups/:pickupId", async (req, res) => {
     return res.status(403).json({ error: "Pickup id must be a number!" });
   }
 
-  // TODO: replace with real pickup (find it on the sheet)
-  const pickup = sampleData.find((pickup) => pickup["Id"] === Number(id));
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ",
+      range: "Sheet1!A1:R",
+    });
+    const pickupData = sheetsResponse.data.values;
 
-  if (!pickup) {
-    return res.status(404).json({ error: "Pickup Not Found!" });
+    const columnHeaders = pickupData[0];
+
+    const pickupDataJsons = pickupData.slice(1).map(pickup => {
+      const pickupJson = {}
+      columnHeaders.forEach((header, index) => {
+        pickupJson[header] = pickup[index];
+      });
+      return pickupJson;
+    });
+
+    const pickup = pickupDataJsons.find((pickup) => pickup["Id"] === id);
+
+    if (!pickup) {
+      console.error("Pickup Not Found! ");
+      return res.status(404).json({ error: "Pickup Not Found!" });
+    }
+    
+    const parsedPickup = parsePickup(pickup);
+
+    res.json(parsedPickup);
+
+  } catch (error) {
+    console.error("error reading sheet: ", error);
+    return res.status(500).json({ error: "Error reading sheet" });
   }
-
-  const parsedPickup = parsePickup(pickup);
-
-  res.json(parsedPickup);
 });
 
 // TODO: create post route for creating a new pickup + editing a pickup

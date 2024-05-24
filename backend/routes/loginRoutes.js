@@ -4,6 +4,9 @@ import url from 'url'
 import express from 'express'
 import dotenv from 'dotenv'
 import axios from 'axios'
+import { GoogleAuth } from 'google-auth-library'
+import credentials from './credentials.json' assert { type: 'json' }
+
 
 dotenv.config()
 

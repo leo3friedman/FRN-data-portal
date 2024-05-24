@@ -1,18 +1,28 @@
-import express from 'express'
-import dotenv from 'dotenv'
-import sampleData from './sampleData.json' assert { type: 'json' }
-import { isValidToken } from './loginRoutes.js'
+import express from "express";
+import dotenv from "dotenv";
+import sampleData from "./sampleData.json" assert { type: "json" };
+import { isValidToken } from "./loginRoutes.js";
+import { google } from "googleapis";
+import { GoogleAuth } from "google-auth-library";
+import credentials from "./credentials.json" assert { type: "json" };
 
-dotenv.config()
+dotenv.config();
 
-const router = express.Router()
+const router = express.Router();
+
+router.use(express.json()); // Ensure the body is parsed
+
+const auth = new GoogleAuth({
+  credentials: credentials,
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
 
 const defaultPickup = {
   id: -1,
   pickupDate: toPickupDate(),
-  lastUpdatedDate: '',
-  donorAgency: '',
-  leadInitials: '',
+  lastUpdatedDate: "",
+  donorAgency: "",
+  leadInitials: "",
   weightBakery: 0,
   weightBeverages: 0,
   weightDairy: 0,
@@ -26,103 +36,257 @@ const defaultPickup = {
   frozenTempEnd: 0,
   refrigeratedTempStart: 0,
   refrigeratedTempEnd: 0,
-}
+};
 
-router.get('/pickups', async (req, res) => {
+router.get("/pickups", async (req, res) => {
   // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
+  const token = req?.cookies?.token;
+  const isValid = await isValidToken(token);
   if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
+    return res.status(401).json({ error: "Not signed in!" });
   }
 
-  //   TODO: replace with real fetched pickups
-  const pickupData = sampleData
+  // GET spreadsheet via Google API
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ",
+      range: "Sheet1!A1:R",
+    });
+    const pickupData = sheetsResponse.data.values;
 
-  const pickups = pickupData.map((pickup) => {
-    const parsedPickup = parsePickup(pickup)
-    return {
-      id: parsedPickup.id,
-      pickupDate: parsedPickup.pickupDate,
-      donorAgency: parsedPickup.donorAgency,
-    }
-  })
+    // Grab spreadsheet column headers and create JSON objects for all rows
+    const columnHeaders = pickupData[0];
 
-  res.json(pickups)
-})
+    const pickupDataJsons = pickupData.slice(1).map((pickup) => {
+      const pickupJson = {};
+      columnHeaders.forEach((header, index) => {
+        pickupJson[header] = pickup[index];
+      });
+      return pickupJson;
+    });
 
-router.get('/pickups/new', async (req, res) => {
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
+    // Map the JSON objects to desired information for pickups page
+    const pickups = pickupDataJsons.map((pickup) => {
+      const parsedPickup = parsePickup(pickup);
+      return {
+        id: parsedPickup.id,
+        pickupDate: parsedPickup.pickupDate,
+        donorAgency: parsedPickup.donorAgency,
+      };
+    });
+
+    res.json(pickups);
+  } catch (error) {
+    console.error("error reading sheet: ", error);
+    return res.status(500).json({ error: "Error reading sheet" });
   }
-  res.json(defaultPickup)
-})
+});
 
-router.get('/pickups/:pickupId', async (req, res) => {
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
+router.get("/pickups/new", async (req, res) => {
+  // validate user is signed in
+  const token = req?.cookies?.token;
+  const isValid = await isValidToken(token);
   if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
+    return res.status(401).json({ error: "Not signed in!" });
   }
-  const id = req?.params?.pickupId
+  res.json(defaultPickup);
+});
+
+router.get("/pickups/:pickupId", async (req, res) => {
+  // validate user is signed in
+  const token = req?.cookies?.token;
+  const isValid = await isValidToken(token);
+  if (!isValid) {
+    return res.status(401).json({ error: "Not signed in!" });
+  }
+  const id = req?.params?.pickupId;
 
   if (isNaN(id)) {
-    return res.status(403).json({ error: 'Pickup id must be a number!' })
+    return res.status(403).json({ error: "Pickup id must be a number!" });
   }
 
-  // TODO: replace with real pickup (find it on the sheet)
-  const pickup = sampleData.find((pickup) => pickup['Id'] === Number(id))
+  // Grab spreadsheet data with Google API
+  try {
+    const sheets = google.sheets({ version: "v4", auth });
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ",
+      range: "Sheet1!A1:R",
+    });
+    const pickupData = sheetsResponse.data.values;
 
-  if (!pickup) {
-    return res.status(404).json({ error: 'Pickup Not Found!' })
+    // Grab column headers from data and find pickup where ids match
+    const columnHeaders = pickupData[0];
+
+    const pickupDataJsons = pickupData.slice(1).map((pickup) => {
+      const pickupJson = {};
+      columnHeaders.forEach((header, index) => {
+        pickupJson[header] = pickup[index];
+      });
+      return pickupJson;
+    });
+
+    const pickup = pickupDataJsons.find((pickup) => pickup["Id"] === id);
+
+    if (!pickup) {
+      console.error("Pickup Not Found! ");
+      return res.status(404).json({ error: "Pickup Not Found!" });
+    }
+
+    const parsedPickup = parsePickup(pickup);
+
+    res.json(parsedPickup);
+  } catch (error) {
+    console.error("error reading sheet: ", error);
+    return res.status(500).json({ error: "Error reading sheet" });
+  }
+});
+
+router.put("/pickups/new", async (req, res) => {
+  // validate user is signed in
+  const token = req?.cookies?.token;
+  const isValid = await isValidToken(token);
+  if (!isValid) {
+    return res.status(401).json({ error: "Not signed in!" });
   }
 
-  const parsedPickup = parsePickup(pickup)
+  const sheets = google.sheets({ version: "v4", auth });
+  const sheetId = "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ";
+  try {
+    // fetch existing data to get column headers
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: "Sheet1!A1:R",
+    });
+    const pickupData = sheetsResponse.data.values;
 
-  res.json(parsedPickup)
-})
+    const columnHeaders = pickupData[0];
 
-// TODO: create post route for creating a new pickup + editing a pickup
+    // create new row and use column headers to grab data from request body
+    const new_row = [];
+
+    columnHeaders.forEach((header) => {
+      new_row.push(req.body[header]);
+    });
+
+    const values = [new_row];
+
+    const resource = {
+      values,
+    };
+
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: "Sheet1",
+      valueInputOption: "RAW",
+      resource,
+    });
+
+    console.log("Row added:", response.data.updates.updatedRange);
+    res.status(200).send("Row added successfully");
+  } catch (error) {
+    console.error("Error adding new pickup ", error);
+    return res.status(500).json({ error: "Error adding new Pickup" });
+  }
+});
+
+router.put("/pickups/:pickupId", async (req, res) => {
+  // validate user is signed in
+  const token = req?.cookies?.token;
+  const isValid = await isValidToken(token);
+  if (!isValid) {
+    return res.status(401).json({ error: "Not signed in!" });
+  }
+
+  const id = req?.params?.pickupId;
+
+  if (isNaN(id)) {
+    return res.status(403).json({ error: "Pickup id must be a number!" });
+  }
+
+  const sheets = google.sheets({ version: "v4", auth });
+  const sheetId = "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ";
+  try {
+    // fetch existing data to get column headers
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: "Sheet1!A1:R",
+    });
+    const pickupData = sheetsResponse.data.values;
+
+    const columnHeaders = pickupData[0];
+    // parse pickup data for where the id matches and define range to update
+    const indexOfRowToUpdate = pickupData.findIndex(
+      (subArray) => subArray[0] === id
+    );
+    const rangeToUpdate = `Sheet1!A${parseInt(indexOfRowToUpdate) + 1}:R`;
+
+    // The values to insert into new range
+    const new_row = [];
+
+    columnHeaders.forEach((header) => {
+      new_row.push(req.body[header]);
+    });
+
+    const values = [new_row];
+
+    const resource = {
+      values,
+    };
+    // update the new range
+    const response = await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: rangeToUpdate,
+      valueInputOption: "RAW",
+      resource,
+    });
+
+    console.log("Row updated");
+    res.status(200).send("Row updated successfully");
+  } catch (error) {
+    console.error("Error updating new pickup ", error);
+    return res.status(500).json({ error: "Error updating new Pickup" });
+  }
+});
+
 // TODO: make sure to validate if signed in before (implementation in /pickups route)
 
 function parsePickup(pickup) {
-  const pickupDate = toPickupDate(pickup?.['Pickup Date'])
+  const pickupDate = toPickupDate(pickup?.["Pickup Date"]);
 
   return {
-    id: pickup?.['Id'] ?? defaultPickup.id,
+    id: pickup?.["Id"] ?? defaultPickup.id,
     pickupDate: pickupDate,
     lastUpdatedDate:
-      pickup?.['Last Updated Date'] ?? defaultPickup.lastUpdatedDate,
-    donorAgency: pickup?.['Donor Agency'] ?? defaultPickup.donorAgency,
-    leadInitials: pickup?.['Lead Initials'] ?? defaultPickup.leadInitials,
-    weightBakery: pickup?.['Lbs Bakery'] ?? defaultPickup.weightBakery,
-    weightBeverages: pickup?.['Lbs Beverages'] ?? defaultPickup.weightBeverages,
-    weightDairy: pickup?.['Lbs Dairy'] ?? defaultPickup.weightDairy,
-    weightDry: pickup?.['Lbs Dry'] ?? defaultPickup.weightDry,
-    weightFrozen: pickup?.['Lbs Frozen'] ?? defaultPickup.weightFrozen,
-    weightMeat: pickup?.['Lbs Meat'] ?? defaultPickup.weightMeat,
-    weightNonFood: pickup?.['Lbs Non-Food'] ?? defaultPickup.weightNonFood,
-    weightPrepared: pickup?.['Lbs Prepared'] ?? defaultPickup.weightPrepared,
-    weightProduce: pickup?.['Lbs Produce'] ?? defaultPickup.weightProduce,
+      pickup?.["Last Updated Date"] ?? defaultPickup.lastUpdatedDate,
+    donorAgency: pickup?.["Donor Agency"] ?? defaultPickup.donorAgency,
+    leadInitials: pickup?.["Lead Initials"] ?? defaultPickup.leadInitials,
+    weightBakery: pickup?.["Lbs Bakery"] ?? defaultPickup.weightBakery,
+    weightBeverages: pickup?.["Lbs Beverages"] ?? defaultPickup.weightBeverages,
+    weightDairy: pickup?.["Lbs Dairy"] ?? defaultPickup.weightDairy,
+    weightDry: pickup?.["Lbs Dry"] ?? defaultPickup.weightDry,
+    weightFrozen: pickup?.["Lbs Frozen"] ?? defaultPickup.weightFrozen,
+    weightMeat: pickup?.["Lbs Meat"] ?? defaultPickup.weightMeat,
+    weightNonFood: pickup?.["Lbs Non-Food"] ?? defaultPickup.weightNonFood,
+    weightPrepared: pickup?.["Lbs Prepared"] ?? defaultPickup.weightPrepared,
+    weightProduce: pickup?.["Lbs Produce"] ?? defaultPickup.weightProduce,
     frozenTempStart:
-      pickup?.['Frozen Temp Start'] ?? defaultPickup.frozenTempStart,
-    frozenTempEnd: pickup?.['Frozen Temp End'] ?? defaultPickup.frozenTempEnd,
+      pickup?.["Frozen Temp Start"] ?? defaultPickup.frozenTempStart,
+    frozenTempEnd: pickup?.["Frozen Temp End"] ?? defaultPickup.frozenTempEnd,
     refrigeratedTempStart:
-      pickup?.['Refrigerated Temp Start'] ??
+      pickup?.["Refrigerated Temp Start"] ??
       defaultPickup.refrigeratedTempStart,
     refrigeratedTempEnd:
-      pickup?.['Refrigerated Temp Start'] ?? defaultPickup.refrigeratedTempEnd,
-  }
+      pickup?.["Refrigerated Temp Start"] ?? defaultPickup.refrigeratedTempEnd,
+  };
 }
 
 // Assuming all pickup operations occur in PST
 function toPickupDate(pastDate = Date.now()) {
-  const date = new Date(pastDate)
-  const offset = date.getTimezoneOffset()
-  const myDate = new Date(date.getTime() - offset * 60 * 1000)
-  return myDate.toISOString().split('T')[0]
+  const date = new Date(pastDate);
+  const offset = date.getTimezoneOffset();
+  const myDate = new Date(date.getTime() - offset * 60 * 1000);
+  return myDate.toISOString().split("T")[0];
 }
 
-export default router
+export default router;

@@ -46,6 +46,7 @@ router.get("/pickups", async (req, res) => {
     return res.status(401).json({ error: "Not signed in!" });
   }
 
+  // GET spreadsheet via Google API
   try {
     const sheets = google.sheets({ version: "v4", auth });
     const sheetsResponse = await sheets.spreadsheets.values.get({
@@ -54,6 +55,7 @@ router.get("/pickups", async (req, res) => {
     });
     const pickupData = sheetsResponse.data.values;
 
+    // Grab spreadsheet column headers and create JSON objects for all rows
     const columnHeaders = pickupData[0];
 
     const pickupDataJsons = pickupData.slice(1).map((pickup) => {
@@ -64,6 +66,7 @@ router.get("/pickups", async (req, res) => {
       return pickupJson;
     });
 
+    // Map the JSON objects to desired information for pickups page
     const pickups = pickupDataJsons.map((pickup) => {
       const parsedPickup = parsePickup(pickup);
       return {
@@ -81,6 +84,7 @@ router.get("/pickups", async (req, res) => {
 });
 
 router.get("/pickups/new", async (req, res) => {
+  // validate user is signed in
   const token = req?.cookies?.token;
   const isValid = await isValidToken(token);
   if (!isValid) {
@@ -90,6 +94,7 @@ router.get("/pickups/new", async (req, res) => {
 });
 
 router.get("/pickups/:pickupId", async (req, res) => {
+  // validate user is signed in
   const token = req?.cookies?.token;
   const isValid = await isValidToken(token);
   if (!isValid) {
@@ -101,6 +106,7 @@ router.get("/pickups/:pickupId", async (req, res) => {
     return res.status(403).json({ error: "Pickup id must be a number!" });
   }
 
+  // Grab spreadsheet data with Google API
   try {
     const sheets = google.sheets({ version: "v4", auth });
     const sheetsResponse = await sheets.spreadsheets.values.get({
@@ -109,6 +115,7 @@ router.get("/pickups/:pickupId", async (req, res) => {
     });
     const pickupData = sheetsResponse.data.values;
 
+    // Grab column headers from data and find pickup where ids match
     const columnHeaders = pickupData[0];
 
     const pickupDataJsons = pickupData.slice(1).map((pickup) => {
@@ -136,14 +143,15 @@ router.get("/pickups/:pickupId", async (req, res) => {
 });
 
 router.put("/pickups/new", async (req, res) => {
-  // const token = req?.cookies?.token;
-  // const isValid = await isValidToken(token);
-  // if (!isValid) {
-  //   return res.status(401).json({ error: "Not signed in!" });
-  // }
+  // validate user is signed in
+  const token = req?.cookies?.token;
+  const isValid = await isValidToken(token);
+  if (!isValid) {
+    return res.status(401).json({ error: "Not signed in!" });
+  }
 
   const sheets = google.sheets({ version: "v4", auth });
-  const sheetId = "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ"
+  const sheetId = "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ";
   try {
     // fetch existing data to get column headers
     const sheetsResponse = await sheets.spreadsheets.values.get({
@@ -154,14 +162,14 @@ router.put("/pickups/new", async (req, res) => {
 
     const columnHeaders = pickupData[0];
 
-    // The values to insert
+    // create new row and use column headers to grab data from request body
     const new_row = [];
 
     columnHeaders.forEach((header) => {
       new_row.push(req.body[header]);
     });
 
-    const values = [new_row]
+    const values = [new_row];
 
     const resource = {
       values,
@@ -179,6 +187,65 @@ router.put("/pickups/new", async (req, res) => {
   } catch (error) {
     console.error("Error adding new pickup ", error);
     return res.status(500).json({ error: "Error adding new Pickup" });
+  }
+});
+
+router.put("/pickups/:pickupId", async (req, res) => {
+  // validate user is signed in
+  const token = req?.cookies?.token;
+  const isValid = await isValidToken(token);
+  if (!isValid) {
+    return res.status(401).json({ error: "Not signed in!" });
+  }
+
+  const id = req?.params?.pickupId;
+
+  if (isNaN(id)) {
+    return res.status(403).json({ error: "Pickup id must be a number!" });
+  }
+
+  const sheets = google.sheets({ version: "v4", auth });
+  const sheetId = "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ";
+  try {
+    // fetch existing data to get column headers
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: "Sheet1!A1:R",
+    });
+    const pickupData = sheetsResponse.data.values;
+
+    const columnHeaders = pickupData[0];
+    // parse pickup data for where the id matches and define range to update
+    const indexOfRowToUpdate = pickupData.findIndex(
+      (subArray) => subArray[0] === id
+    );
+    const rangeToUpdate = `Sheet1!A${parseInt(indexOfRowToUpdate) + 1}:R`;
+
+    // The values to insert into new range
+    const new_row = [];
+
+    columnHeaders.forEach((header) => {
+      new_row.push(req.body[header]);
+    });
+
+    const values = [new_row];
+
+    const resource = {
+      values,
+    };
+    // update the new range
+    const response = await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: rangeToUpdate,
+      valueInputOption: "RAW",
+      resource,
+    });
+
+    console.log("Row updated");
+    res.status(200).send("Row updated successfully");
+  } catch (error) {
+    console.error("Error updating new pickup ", error);
+    return res.status(500).json({ error: "Error updating new Pickup" });
   }
 });
 

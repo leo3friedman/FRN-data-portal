@@ -30,6 +30,41 @@ export default function FormPage(props) {
     loadPickup()
   }, [])
 
+  async function onFormSubmit(event) {
+    event.preventDefault()
+
+    try {
+      // agreggrate form data as json object
+      const formData = Array.from(event.target).reduce(
+        (formData, formInput) => {
+          if (formInput?.name) {
+            formData[formInput.name] = formInput.value
+          }
+          return formData
+        },
+        {}
+      )
+      formData['Id'] = pickupId
+
+      const response = await fetch(
+        `http://localhost:3000/pickups/${pickupId}`,
+        {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        }
+      )
+      if (response.ok) {
+        navigate('/')
+      }
+    } catch (error) {
+      // TODO: show an error message
+      console.log(error)
+      alert('Pickup submission failed, please try again later')
+    }
+  }
+
   return (
     <PageLayout>
       <div className={styles.stickyContent}>
@@ -41,29 +76,31 @@ export default function FormPage(props) {
           {isNewPickup ? 'Create New Pickup' : 'Edit Pickup'}
         </header>
       </div>
-      <form className={styles.pickupForm}>
+      <form className={styles.pickupForm} onSubmit={onFormSubmit}>
         <div className={styles.formCategory}>
           <div className={styles.formCategoryHeader}>Vendor Information</div>
           <ul className={`${styles.formFieldList}`}>
             <li>
-              <VendorInfoField
-                label={'Lead Initial'}
+              <TextField
+                label='Lead Initials'
                 defaultValue={pickup?.leadInitials}
+                name='Lead Initials'
               />
             </li>
             <li>
-              <VendorInfoField
+              <DateField
                 label='Pickup Date'
                 defaultValue={pickup?.pickupDate}
-                inputType='date'
                 required
+                name='Pickup Date'
               />
             </li>
             <li>
-              <VendorInfoField
-                label={'Donor Agency'}
+              <TextField
+                label='Donor Agency'
                 defaultValue={pickup?.donorAgency}
                 required
+                name='Donor Agency'
               />
             </li>
           </ul>
@@ -72,42 +109,66 @@ export default function FormPage(props) {
           <div className={styles.formCategoryHeader}>Weights</div>
           <ul className={`${styles.formFieldList}`}>
             <li>
-              <WeightField
+              <NumberField
                 label='Produce'
                 defaultValue={pickup?.weightProduce}
+                name='Lbs Produce'
               />
             </li>
             <li>
-              <WeightField label='Dry' defaultValue={pickup?.weightDry} />
+              <NumberField
+                label='Dry'
+                defaultValue={pickup?.weightDry}
+                name='Lbs Dry'
+              />
             </li>
             <li>
-              <WeightField
+              <NumberField
                 label='Prepared'
                 defaultValue={pickup?.weightPrepared}
+                name='Lbs Prepared'
               />
             </li>
             <li>
-              <WeightField label='Meat' defaultValue={pickup?.weightMeat} />
+              <NumberField
+                label='Meat'
+                defaultValue={pickup?.weightMeat}
+                name='Lbs Meat'
+              />
             </li>
             <li>
-              <WeightField label='Dairy' defaultValue={pickup?.weightDairy} />
+              <NumberField
+                label='Dairy'
+                defaultValue={pickup?.weightDairy}
+                name='Lbs Dairy'
+              />
             </li>
             <li>
-              <WeightField label='Bakery' defaultValue={pickup?.weightBakery} />
+              <NumberField
+                label='Bakery'
+                defaultValue={pickup?.weightBakery}
+                name='Lbs Bakery'
+              />
             </li>
             <li>
-              <WeightField label='Frozen' defaultValue={pickup?.weightFrozen} />
+              <NumberField
+                label='Frozen'
+                defaultValue={pickup?.weightFrozen}
+                name='Lbs Frozen'
+              />
             </li>
             <li>
-              <WeightField
+              <NumberField
                 label='Beverages'
                 defaultValue={pickup?.weightBeverages}
+                name='Lbs Beverages'
               />
             </li>
             <li>
-              <WeightField
+              <NumberField
                 label='Non-Food'
                 defaultValue={pickup?.weightNonFood}
+                name='Lbs Non-Food'
               />
             </li>
           </ul>
@@ -116,62 +177,96 @@ export default function FormPage(props) {
           <div className={styles.formCategoryHeader}>Temperatures</div>
           <ul className={`${styles.formFieldList}`}>
             <li>
-              <WeightField
+              <NumberField
                 label='Refrigerated Start'
                 defaultValue={pickup?.refrigeratedTempStart}
+                name='Refrigerated Temp Start'
               />
             </li>
             <li>
-              <WeightField
+              <NumberField
                 label='Refrigerated End'
                 defaultValue={pickup?.refrigeratedTempEnd}
+                name='Refrigerated Temp End'
               />
             </li>
             <li>
-              <WeightField
+              <NumberField
                 label='Frozen Start'
                 defaultValue={pickup?.frozenTempStart}
+                name='Frozen Temp Start'
               />
             </li>
             <li>
-              <WeightField
+              <NumberField
                 label='Frozen End'
                 defaultValue={pickup?.refrigeratedTempEnd}
+                name='Frozen Temp End'
               />
             </li>
           </ul>
         </div>
-        <Button size='small'>Submit Pickup</Button>
+        <Button size='small' type='submit'>
+          {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
+        </Button>
       </form>
     </PageLayout>
   )
 }
 
-function WeightField(props) {
-  const { label, defaultValue } = props
+function Field(props) {
+  const { label, inputProps } = props
   return (
-    <div className={styles.weightFieldContainer}>
+    <div className={styles.fieldContainer}>
       <label>{label}</label>
-      <input
-        type='number'
-        step='5'
-        min='0'
-        max='10000'
-        defaultValue={defaultValue}
-      />
+      <input {...inputProps} />
     </div>
   )
 }
 
-function VendorInfoField(props) {
-  const { label, defaultValue, inputType, required } = props
+function NumberField(props) {
+  const { label, defaultValue, required, name } = props
   return (
-    <div className={styles.vendorInfoFieldContainer}>
-      <label>{label}</label>
-      <input
-        type={inputType ?? 'text'}
-        required={required ?? false}
-        defaultValue={defaultValue}></input>
-    </div>
+    <Field
+      label={label}
+      inputProps={{
+        type: 'number',
+        min: '0',
+        max: '10000',
+        defaultValue: defaultValue,
+        required: required,
+        name: name,
+      }}
+    />
+  )
+}
+
+function DateField(props) {
+  const { label, defaultValue, required, name } = props
+  return (
+    <Field
+      label={label}
+      inputProps={{
+        type: 'date',
+        required: required,
+        defaultValue: defaultValue,
+        name: name,
+      }}
+    />
+  )
+}
+
+function TextField(props) {
+  const { label, defaultValue, required, name } = props
+  return (
+    <Field
+      label={label}
+      inputProps={{
+        type: 'text',
+        required: required,
+        defaultValue: defaultValue,
+        name: name,
+      }}
+    />
   )
 }

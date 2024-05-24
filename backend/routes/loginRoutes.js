@@ -4,9 +4,6 @@ import url from 'url'
 import express from 'express'
 import dotenv from 'dotenv'
 import axios from 'axios'
-import { GoogleAuth } from 'google-auth-library'
-import credentials from './credentials.json' assert { type: 'json' }
-
 
 dotenv.config()
 
@@ -29,6 +26,7 @@ router.get('/googleauth', (req, res) => {
     scope: ['https://www.googleapis.com/auth/userinfo.email'],
     // Include the state parameter to reduce the risk of CSRF attacks.
     state: state,
+    consent: 'prompt',
   })
 
   res.redirect(authorizationUrl)
@@ -51,7 +49,8 @@ router.get('/oauth2callback', async (req, res) => {
       secure: true,
       encode: (v) => v,
     })
-    res.redirect('http://localhost:5173/')
+
+    res.redirect(process.env.CLIENT_URL)
   }
 })
 

@@ -47,23 +47,18 @@
   font: var(--font-small);
 }
 
-.vendorInfoFieldContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .formFieldList li input {
   padding: 0.25rem;
 }
 
-.weightFieldContainer {
+.fieldContainer {
   display: flex;
 }
 
-.weightFieldContainer label {
+.fieldContainer label {
   width: 8rem;
 }
-.weightFieldContainer input {
+
+.fieldContainer input {
   width: 8rem;
 }

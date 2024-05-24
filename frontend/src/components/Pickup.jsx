@@ -6,17 +6,23 @@ export default function Pickup(props) {
   const navigate = useNavigate()
   const { pickupDate, donorAgency, pickupId } = props
 
+  /**
+   *
+   * @param {string} inputDate date in format of yyyy-mm-dd
+   * @returns date in the format of mm/dd/yy without "0" padding
+   */
   function formatDate(inputDate) {
-    // Parse the input date string
-    const date = new Date(inputDate)
+    try {
+      const [yearRaw, monthRaw, dayRaw] = inputDate.split('-')
+      const year = yearRaw.slice(-2)
+      const month = Number(monthRaw)
+      const day = Number(dayRaw)
 
-    // Get the individual components (month, day, year)
-    const year = date.getFullYear().toString().slice(-2) // Get the last two digits of the year
-    const month = (date.getMonth() + 1).toString() // Month is zero-based, so add 1
-    const day = date.getDate().toString()
-
-    // Format the date as MM/DD/YY
-    return `${month}/${day}/${year}`
+      return `${month}/${day}/${year}`
+    } catch (error) {
+      console.log(error)
+      return inputDate
+    }
   }
   return (
     <div

@@ -162,11 +162,33 @@ router.put('/pickups/new', async (req, res) => {
 
     const columnHeaders = pickupData[0]
 
-    // create new row and use column headers to grab data from request body
+    // index of id field in a pickup data row
+    const idIndex = columnHeaders.indexOf('Id')
+
+    // convert pickupData to list of ids
+    const ids = Array.from(pickupData)
+      .slice(1)
+      .map((data) => Number(data[idIndex]))
+    
+    // newId is one greater than largest current id
+    const newId = Math.max(...ids) + 1
+
+    // TODO: validate body
+    const newPickup = req?.body
+
+    // set newId
+    newPickup['Id'] = newId
+
+    // format pickup date from string to date
+    newPickup['Pickup Date'] = toPickupDate(newPickup['Pickup Date'])
+
+    // set last updated to now
+    newPickup['Last Updated Date'] = toPickupDate()
+
     const new_row = []
 
     columnHeaders.forEach((header) => {
-      new_row.push(req.body[header])
+      new_row.push(newPickup[header])
     })
 
     const values = [new_row]
@@ -178,7 +200,7 @@ router.put('/pickups/new', async (req, res) => {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
       range: 'Sheet1',
-      valueInputOption: 'RAW',
+      valueInputOption: 'USER_ENTERED',
       resource,
     })
 
@@ -207,6 +229,9 @@ router.put('/pickups/:pickupId', async (req, res) => {
   }
 
   const updatedPickup = req?.body
+
+  // format pickup date from string to date
+  updatedPickup['Pickup Date'] = toPickupDate(updatedPickup['Pickup Date'])
 
   // set last updated to now
   updatedPickup['Last Updated Date'] = toPickupDate()
@@ -252,7 +277,7 @@ router.put('/pickups/:pickupId', async (req, res) => {
     const response = await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: rangeToUpdate,
-      valueInputOption: 'RAW',
+      valueInputOption: 'USER_ENTERED',
       resource,
     })
 
@@ -298,10 +323,15 @@ function parsePickup(pickup) {
 
 // Assuming all pickup operations occur in PST
 function toPickupDate(pastDate = Date.now()) {
-  const date = new Date(pastDate)
-  const offset = date.getTimezoneOffset()
-  const myDate = new Date(date.getTime() - offset * 60 * 1000)
-  return myDate.toISOString().split('T')[0]
+  try {
+    const date = new Date(pastDate)
+    const offset = date.getTimezoneOffset()
+    const myDate = new Date(date.getTime() - offset * 60 * 1000)
+    return myDate.toISOString().split('T')[0]
+  } catch (error) {
+    console.log(error)
+    return pastDate
+  }
 }
 
 export default router

@@ -30,6 +30,28 @@ export default function FormPage(props) {
     loadPickup()
   }, [])
 
+  async function submitNewPickup(pickupData) {
+    const response = await fetch(`http://localhost:3000/pickups/new`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pickupData),
+    })
+
+    return response.ok
+  }
+
+  async function updatePickup(id, pickupData) {
+    const response = await fetch(`http://localhost:3000/pickups/${id}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pickupData),
+    })
+
+    return response.ok
+  }
+
   async function onFormSubmit(event) {
     event.preventDefault()
 
@@ -44,22 +66,18 @@ export default function FormPage(props) {
         },
         {}
       )
-      formData['Id'] = pickupId
 
-      const response = await fetch(
-        `http://localhost:3000/pickups/${pickupId}`,
-        {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        }
-      )
-      if (response.ok) {
-        navigate('/')
-      }
+      if (!isNewPickup) formData['Id'] = pickupId
+
+      const submitAction = isNewPickup
+        ? () => submitNewPickup(formData)
+        : () => updatePickup(pickupId, formData)
+
+      const result = await submitAction()
+
+      // return to pickups page on success
+      if (result) navigate('/')
     } catch (error) {
-      // TODO: show an error message
       console.log(error)
       alert('Pickup submission failed, please try again later')
     }

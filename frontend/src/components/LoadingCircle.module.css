@@ -1,0 +1,25 @@
+.loadingCircle {
+  border: 0.25rem solid #f3f3f3; /* Light grey */
+  border-top: 0.25rem solid #3498db; /* Blue */
+  border-radius: 50%;
+  height: 100%;
+  width: 3rem;
+  height: 3rem;
+  animation: spin 1s linear infinite;
+}
+
+.loadingCircle.small {
+  border: 0.125rem solid #f3f3f3; /* Light grey */
+  border-top: 0.125rem solid #3498db; /* Blue */
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

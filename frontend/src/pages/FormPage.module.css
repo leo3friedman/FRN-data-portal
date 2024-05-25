@@ -25,6 +25,12 @@
   background-color: var(--secondary-white);
 }
 
+.loadingCircleContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .pickupForm {
   display: flex;
   flex-direction: column;

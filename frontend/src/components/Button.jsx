@@ -1,7 +1,8 @@
+import { LoadingCircle } from './index'
 import styles from './Button.module.css'
 
 export default function Button(props) {
-  const { children, size, onClick, buttonProps } = props
+  const { children, size, onClick, buttonProps, loading } = props
 
   const sizeClasses = {
     small: 'smallSize',
@@ -13,11 +14,19 @@ export default function Button(props) {
     : sizeClasses.default
 
   return (
-    <button
-      className={`${styles.button} ${styles[sizeClass]}`}
-      onClick={onClick}
-      {...buttonProps}>
-      {children}
-    </button>
+    <div className={styles.buttonContainer}>
+      <button
+        className={`${styles.button} ${styles[sizeClass]} ${loading ? styles.loading : ''}`}
+        onClick={onClick}
+        {...buttonProps}>
+        {children}
+      </button>
+
+      {loading && (
+        <div className={styles.loadingCircleContainer}>
+          <LoadingCircle size='small' />
+        </div>
+      )}
+    </div>
   )
 }

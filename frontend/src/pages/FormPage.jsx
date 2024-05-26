@@ -5,93 +5,61 @@ import arrowLeftIcon from '../assets/arrowLeftIcon.svg'
 import styles from './FormPage.module.css'
 import { useParams } from 'react-router-dom'
 
-import { getPickup, getNewPickup } from '../api/index.js'
+import {
+  getPickup,
+  getNewPickup,
+  putPickup,
+  putNewPickup,
+} from '../api/index.js'
+import { pickupApiErrors } from '../api/enums.js'
 
 export default function FormPage(props) {
   const { isNewPickup } = props
   const { pickupId } = useParams()
 
-  const pickupHook = isNewPickup
+  const getPickupHook = isNewPickup
     ? () => getNewPickup()
     : () => getPickup(pickupId)
 
+  const submitPickupHook = isNewPickup
+    ? () => putNewPickup()
+    : () => putPickup(pickupId)
+
   const navigate = useNavigate()
 
-  const { pickup, pickupLoading, pickupError, fetchPickup } = pickupHook()
+  const { pickup, pickupLoading, pickupError, fetchPickup } = getPickupHook()
+  const { submitLoading, submitError, submitPickup, submitSuccess } =
+    submitPickupHook()
 
   useEffect(() => {
     fetchPickup()
   }, [])
 
-  const [submitLoading, setSubmitLoading] = useState(false)
-
-  async function submitNewPickup(pickupData) {
-    try {
-      const response = await fetch(`http://localhost:3000/pickups/new`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pickupData),
-      })
-
-      return response.ok
-    } catch (error) {
-      console.log(error)
-      return false
-    }
-  }
-
-  async function updatePickup(id, pickupData) {
-    try {
-      const response = await fetch(`http://localhost:3000/pickups/${id}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pickupData),
-      })
-
-      return response.ok
-    } catch (error) {
-      console.log(error)
-      return false
-    }
-  }
-
   async function onFormSubmit(event) {
-    try {
-      setSubmitLoading(true)
-      event.preventDefault()
-      // agreggrate form data as json object
-      const formData = Array.from(event.target).reduce(
-        (formData, formInput) => {
-          if (formInput?.name) {
-            formData[formInput.name] = formInput.value
-          }
-          return formData
-        },
-        {}
-      )
+    event.preventDefault()
 
-      if (!isNewPickup) formData['Id'] = pickupId
-
-      const submitAction = isNewPickup
-        ? () => submitNewPickup(formData)
-        : () => updatePickup(pickupId, formData)
-
-      const result = await submitAction()
-
-      // return to pickups page on success
-      if (result) {
-        navigate('/')
-      } else {
-        throw new Error('Pickup submission failed')
+    const formData = Array.from(event.target).reduce((formData, formInput) => {
+      if (formInput?.name) {
+        formData[formInput.name] = formInput.value
       }
-    } catch (error) {
-      console.log(error)
-      alert('Sorry, pickup submission failed. Please try again later.')
-    } finally {
-      setSubmitLoading(false)
-    }
+      return formData
+    }, {})
+
+    if (!isNewPickup) formData['Id'] = pickupId
+
+    submitPickup(formData)
+  }
+
+  if (
+    pickupError === pickupApiErrors.NOT_SIGNED_IN ||
+    submitError === pickupApiErrors.NOT_SIGNED_IN
+  ) {
+    navigate('/login')
+  }
+
+  if (submitSuccess) {
+    // TODO: add some feedback here (ex. confetti)
+    navigate('/')
   }
 
   return (
@@ -109,12 +77,18 @@ export default function FormPage(props) {
         <div className={styles.loadingCircleContainer}>
           <LoadingCircle />
         </div>
+      ) : pickupError ? (
+        <div className={styles.error}>
+          Error getting pickups. <br /> <br /> Please click <a href=''>here</a>{' '}
+          to try again.
+        </div>
       ) : (
         <PickupForm
           pickup={pickup}
           onFormSubmit={onFormSubmit}
           isNewPickup={isNewPickup}
           submitLoading={submitLoading}
+          submitError={submitError}
         />
       )}
     </PageLayout>
@@ -179,7 +153,9 @@ function TextField(props) {
 }
 
 function PickupForm(props) {
-  const { pickup, onFormSubmit, isNewPickup, submitLoading } = props
+  const { pickup, onFormSubmit, isNewPickup, submitLoading, submitError } =
+    props
+
   return (
     <form className={styles.pickupForm} onSubmit={onFormSubmit}>
       <div className={styles.formCategory}>
@@ -324,9 +300,16 @@ function PickupForm(props) {
           </li>
         </ul>
       </div>
-      <Button size='small' type='submit' loading={submitLoading}>
-        {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
-      </Button>
+      <div>
+        <Button size='small' type='submit' loading={submitLoading}>
+          {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
+        </Button>
+        {submitError && !submitLoading && (
+          <div className={styles.error}>
+            Error submitting pickup. Please try again later.
+          </div>
+        )}
+      </div>
     </form>
   )
 }

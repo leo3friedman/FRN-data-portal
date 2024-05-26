@@ -68,3 +68,8 @@
 .fieldContainer input {
   width: 8rem;
 }
+
+.error {
+  color: red;
+  margin-top: 1rem;
+}

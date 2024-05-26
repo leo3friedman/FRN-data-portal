@@ -1,11 +1,7 @@
 import { useState, useCallback } from 'react'
+import { pickupApiErrors } from './enums.js'
 
-const pickupApiErrors = {
-  NOT_SIGNED_IN: new Error('User is not signed in!'),
-  UNKNOWN_ERROR: new Error('Unknown Error'),
-}
-
-function usePickups() {
+export default function getPickups() {
   const [pickups, setPickups] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(undefined)
@@ -20,8 +16,9 @@ function usePickups() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          setError(pickupApiErrors.NOT_SIGNED_IN)
-          return
+          return setError(pickupApiErrors.NOT_SIGNED_IN)
+        } else {
+          return setError(pickupApiErrors.UNKNOWN_ERROR)
         }
       }
 
@@ -42,5 +39,3 @@ function usePickups() {
     fetchPickups,
   }
 }
-
-export { pickupApiErrors, usePickups }

@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, LoadingCircle } from '../components/index'
 import { Pickup, PageLayout } from '../components/index.js'
-import { pickupApiErrors, usePickups } from '../api/pickupApi.js'
+
 import logOutIcon from '../assets/logOutIcon.svg'
 import styles from './PickupsPage.module.css'
+
+import { pickupApiErrors } from '../api/enums.js'
+import { getPickups } from '../api/index.js'
 
 export default function PickupsPage() {
   const navigate = useNavigate()
@@ -48,7 +51,7 @@ export default function PickupsPage() {
 
 function PickupsList() {
   const navigate = useNavigate()
-  const { pickups, pickupsLoading, fetchPickups, pickupsError } = usePickups()
+  const { pickups, pickupsLoading, fetchPickups, pickupsError } = getPickups()
 
   useEffect(() => {
     fetchPickups()

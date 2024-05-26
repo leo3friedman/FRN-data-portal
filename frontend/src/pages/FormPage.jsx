@@ -5,39 +5,25 @@ import arrowLeftIcon from '../assets/arrowLeftIcon.svg'
 import styles from './FormPage.module.css'
 import { useParams } from 'react-router-dom'
 
+import { getPickup, getNewPickup } from '../api/index.js'
+
 export default function FormPage(props) {
   const { isNewPickup } = props
   const { pickupId } = useParams()
-  const navigate = useNavigate()
-  const [pickup, setPickup] = useState({})
-  const [pickupLoading, setPickupLoading] = useState(true)
-  const [submitLoading, setSubmitLoading] = useState(false)
 
-  async function loadPickup() {
-    try {
-      setPickupLoading(true)
-      const URL = `http://localhost:3000/pickups/${isNewPickup ? 'new' : pickupId}`
-      const response = await fetch(URL, {
-        method: 'GET',
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        if (response.status === 401) {
-          navigate('/login')
-        }
-      }
-      const result = await response.json()
-      setPickup(result)
-    } catch (error) {
-      console.log(error)
-    } finally {
-      setPickupLoading(false)
-    }
-  }
+  const pickupHook = isNewPickup
+    ? () => getNewPickup()
+    : () => getPickup(pickupId)
+
+  const navigate = useNavigate()
+
+  const { pickup, pickupLoading, pickupError, fetchPickup } = pickupHook()
 
   useEffect(() => {
-    loadPickup()
+    fetchPickup()
   }, [])
+
+  const [submitLoading, setSubmitLoading] = useState(false)
 
   async function submitNewPickup(pickupData) {
     try {

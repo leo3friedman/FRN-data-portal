@@ -57,16 +57,18 @@ function PickupsList() {
     fetchPickups()
   }, [])
 
+  useEffect(() => {
+    if (pickupsError === pickupApiErrors.NOT_SIGNED_IN) {
+      navigate('/login')
+    }
+  }, [pickupsError])
+
   if (pickupsLoading) {
     return (
       <div className={styles.loadingCircleContainer}>
         <LoadingCircle />
       </div>
     )
-  }
-
-  if (pickupsError === pickupApiErrors.NOT_SIGNED_IN) {
-    navigate('/login')
   }
 
   if (pickupsError) {

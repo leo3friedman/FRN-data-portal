@@ -35,6 +35,20 @@ export default function FormPage(props) {
     fetchPickup()
   }, [])
 
+  useEffect(() => {
+    if (
+      pickupError === pickupApiErrors.NOT_SIGNED_IN ||
+      submitError === pickupApiErrors.NOT_SIGNED_IN
+    ) {
+      navigate('/login')
+    }
+
+    if (submitSuccess) {
+      // TODO: add some feedback here (ex. confetti)
+      navigate('/')
+    }
+  }, [pickupError, submitError, submitSuccess])
+
   async function onFormSubmit(event) {
     event.preventDefault()
 
@@ -48,18 +62,6 @@ export default function FormPage(props) {
     if (!isNewPickup) formData['Id'] = pickupId
 
     submitPickup(formData)
-  }
-
-  if (
-    pickupError === pickupApiErrors.NOT_SIGNED_IN ||
-    submitError === pickupApiErrors.NOT_SIGNED_IN
-  ) {
-    navigate('/login')
-  }
-
-  if (submitSuccess) {
-    // TODO: add some feedback here (ex. confetti)
-    navigate('/')
   }
 
   return (

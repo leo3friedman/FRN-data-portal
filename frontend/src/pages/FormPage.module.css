@@ -25,6 +25,12 @@
   background-color: var(--secondary-white);
 }
 
+.loadingCircleContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .pickupForm {
   display: flex;
   flex-direction: column;
@@ -49,6 +55,7 @@
 
 .formFieldList li input {
   padding: 0.25rem;
+  font-size: 1rem;
 }
 
 .fieldContainer {
@@ -56,9 +63,16 @@
 }
 
 .fieldContainer label {
+  display: flex;
   width: 8rem;
+  align-items: center;
 }
 
 .fieldContainer input {
   width: 8rem;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
 }

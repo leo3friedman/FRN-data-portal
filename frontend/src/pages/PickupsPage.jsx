@@ -1,41 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '../components/index'
+import { Button, LoadingCircle } from '../components/index'
 import { Pickup, PageLayout } from '../components/index.js'
+
 import logOutIcon from '../assets/logOutIcon.svg'
 import styles from './PickupsPage.module.css'
 
+import { pickupApiErrors } from '../api/enums.js'
+import { getPickups } from '../api/index.js'
+
 export default function PickupsPage() {
   const navigate = useNavigate()
-  const [pickups, setPickups] = useState([])
-
   async function logout() {
-    const response = await fetch('http://localhost:3000/logout', {
-      method: 'POST',
-      credentials: 'include',
-    })
-    if (response.ok) {
-      navigate('/login')
-    }
-  }
-
-  async function loadPickups() {
-    const response = await fetch('http://localhost:3000/pickups', {
-      method: 'GET',
-      credentials: 'include',
-    })
-    if (!response.ok) {
-      if (response.status === 401) {
+    try {
+      const response = await fetch('http://localhost:3000/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (response.ok) {
         navigate('/login')
+      } else {
+        throw new Error()
       }
+    } catch (error) {
+      console.log(error)
+      alert(
+        'Sorry, we are having some trouble logging you out. Please try again later.'
+      )
     }
-    const result = await response.json()
-    setPickups(result)
   }
-
-  useEffect(() => {
-    loadPickups()
-  }, [])
 
   return (
     <PageLayout>
@@ -51,22 +44,57 @@ export default function PickupsPage() {
           </Button>
         </header>
       </div>
-
-      <ul className={styles.pickupList}>
-        {pickups && pickups.length ? (
-          pickups.map((pickup) => (
-            <li key={pickup?.id}>
-              <Pickup
-                pickupId={pickup?.id}
-                pickupDate={pickup?.pickupDate}
-                donorAgency={pickup?.donorAgency}
-              />
-            </li>
-          ))
-        ) : (
-          <div>No pickups found</div>
-        )}
-      </ul>
+      <PickupsList />
     </PageLayout>
+  )
+}
+
+function PickupsList() {
+  const navigate = useNavigate()
+  const { pickups, pickupsLoading, fetchPickups, pickupsError } = getPickups()
+
+  useEffect(() => {
+    fetchPickups()
+  }, [])
+
+  useEffect(() => {
+    if (pickupsError === pickupApiErrors.NOT_SIGNED_IN) {
+      navigate('/login')
+    }
+  }, [pickupsError])
+
+  if (pickupsLoading) {
+    return (
+      <div className={styles.loadingCircleContainer}>
+        <LoadingCircle />
+      </div>
+    )
+  }
+
+  if (pickupsError) {
+    return (
+      <div className={styles.error}>
+        Error getting pickups. <br /> <br /> Please click <a href='.'>here</a>{' '}
+        to try again.
+      </div>
+    )
+  }
+
+  return (
+    <ul className={styles.pickupList}>
+      {pickups && pickups.length ? (
+        pickups.map((pickup) => (
+          <li key={pickup?.id}>
+            <Pickup
+              pickupId={pickup?.id}
+              pickupDate={pickup?.pickupDate}
+              donorAgency={pickup?.donorAgency}
+            />
+          </li>
+        ))
+      ) : (
+        <div>No pickups found</div>
+      )}
+    </ul>
   )
 }

@@ -1,86 +1,67 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, PageLayout } from '../components/index.js'
+import { Button, PageLayout, LoadingCircle } from '../components/index.js'
 import arrowLeftIcon from '../assets/arrowLeftIcon.svg'
 import styles from './FormPage.module.css'
 import { useParams } from 'react-router-dom'
 
+import {
+  getPickup,
+  getNewPickup,
+  putPickup,
+  putNewPickup,
+} from '../api/index.js'
+import { pickupApiErrors } from '../api/enums.js'
+
 export default function FormPage(props) {
   const { isNewPickup } = props
   const { pickupId } = useParams()
-  const navigate = useNavigate()
-  const [pickup, setPickup] = useState({})
 
-  async function loadPickup() {
-    const URL = `http://localhost:3000/pickups/${isNewPickup ? 'new' : pickupId}`
-    const response = await fetch(URL, {
-      method: 'GET',
-      credentials: 'include',
-    })
-    if (!response.ok) {
-      if (response.status === 401) {
-        navigate('/login')
-      }
-    }
-    const result = await response.json()
-    setPickup(result)
-  }
+  const getPickupHook = isNewPickup
+    ? () => getNewPickup()
+    : () => getPickup(pickupId)
+
+  const submitPickupHook = isNewPickup
+    ? () => putNewPickup()
+    : () => putPickup(pickupId)
+
+  const navigate = useNavigate()
+
+  const { pickup, pickupLoading, pickupError, fetchPickup } = getPickupHook()
+  const { submitLoading, submitError, submitPickup, submitSuccess } =
+    submitPickupHook()
 
   useEffect(() => {
-    loadPickup()
+    fetchPickup()
   }, [])
 
-  async function submitNewPickup(pickupData) {
-    const response = await fetch(`http://localhost:3000/pickups/new`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pickupData),
-    })
+  useEffect(() => {
+    if (
+      pickupError === pickupApiErrors.NOT_SIGNED_IN ||
+      submitError === pickupApiErrors.NOT_SIGNED_IN
+    ) {
+      navigate('/login')
+    }
 
-    return response.ok
-  }
-
-  async function updatePickup(id, pickupData) {
-    const response = await fetch(`http://localhost:3000/pickups/${id}`, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pickupData),
-    })
-
-    return response.ok
-  }
+    if (submitSuccess) {
+      // TODO: add some feedback here (ex. confetti)
+      navigate('/')
+    }
+  }, [pickupError, submitError, submitSuccess])
 
   async function onFormSubmit(event) {
     event.preventDefault()
 
-    try {
-      // agreggrate form data as json object
-      const formData = Array.from(event.target).reduce(
-        (formData, formInput) => {
-          if (formInput?.name) {
-            formData[formInput.name] = formInput.value
-          }
-          return formData
-        },
-        {}
-      )
+    const formData = Array.from(event.target).reduce((formData, formInput) => {
+      if (formInput?.name) {
+        formData[formInput.name] = formInput.value
+      }
+      return formData
+    }, {})
 
-      if (!isNewPickup) formData['Id'] = pickupId
+    if (!isNewPickup) formData['Id'] = pickupId
 
-      const submitAction = isNewPickup
-        ? () => submitNewPickup(formData)
-        : () => updatePickup(pickupId, formData)
-
-      const result = await submitAction()
-
-      // return to pickups page on success
-      if (result) navigate('/')
-    } catch (error) {
-      console.log(error)
-      alert('Pickup submission failed, please try again later')
-    }
+    submitPickup(formData)
   }
 
   return (
@@ -94,140 +75,24 @@ export default function FormPage(props) {
           {isNewPickup ? 'Create New Pickup' : 'Edit Pickup'}
         </header>
       </div>
-      <form className={styles.pickupForm} onSubmit={onFormSubmit}>
-        <div className={styles.formCategory}>
-          <div className={styles.formCategoryHeader}>Vendor Information</div>
-          <ul className={`${styles.formFieldList}`}>
-            <li>
-              <TextField
-                label='Lead Initials'
-                defaultValue={pickup?.leadInitials}
-                name='Lead Initials'
-              />
-            </li>
-            <li>
-              <DateField
-                label='Pickup Date'
-                defaultValue={pickup?.pickupDate}
-                required
-                name='Pickup Date'
-              />
-            </li>
-            <li>
-              <TextField
-                label='Donor Agency'
-                defaultValue={pickup?.donorAgency}
-                required
-                name='Donor Agency'
-              />
-            </li>
-          </ul>
+      {pickupLoading ? (
+        <div className={styles.loadingCircleContainer}>
+          <LoadingCircle />
         </div>
-        <div className={styles.formCategory}>
-          <div className={styles.formCategoryHeader}>Weights</div>
-          <ul className={`${styles.formFieldList}`}>
-            <li>
-              <NumberField
-                label='Produce'
-                defaultValue={pickup?.weightProduce}
-                name='Lbs Produce'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Dry'
-                defaultValue={pickup?.weightDry}
-                name='Lbs Dry'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Prepared'
-                defaultValue={pickup?.weightPrepared}
-                name='Lbs Prepared'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Meat'
-                defaultValue={pickup?.weightMeat}
-                name='Lbs Meat'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Dairy'
-                defaultValue={pickup?.weightDairy}
-                name='Lbs Dairy'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Bakery'
-                defaultValue={pickup?.weightBakery}
-                name='Lbs Bakery'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Frozen'
-                defaultValue={pickup?.weightFrozen}
-                name='Lbs Frozen'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Beverages'
-                defaultValue={pickup?.weightBeverages}
-                name='Lbs Beverages'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Non-Food'
-                defaultValue={pickup?.weightNonFood}
-                name='Lbs Non-Food'
-              />
-            </li>
-          </ul>
+      ) : pickupError ? (
+        <div className={styles.error}>
+          Error getting pickups. <br /> <br /> Please click <a href=''>here</a>{' '}
+          to try again.
         </div>
-        <div className={styles.formCategory}>
-          <div className={styles.formCategoryHeader}>Temperatures</div>
-          <ul className={`${styles.formFieldList}`}>
-            <li>
-              <NumberField
-                label='Refrigerated Start'
-                defaultValue={pickup?.refrigeratedTempStart}
-                name='Refrigerated Temp Start'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Refrigerated End'
-                defaultValue={pickup?.refrigeratedTempEnd}
-                name='Refrigerated Temp End'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Frozen Start'
-                defaultValue={pickup?.frozenTempStart}
-                name='Frozen Temp Start'
-              />
-            </li>
-            <li>
-              <NumberField
-                label='Frozen End'
-                defaultValue={pickup?.refrigeratedTempEnd}
-                name='Frozen Temp End'
-              />
-            </li>
-          </ul>
-        </div>
-        <Button size='small' type='submit'>
-          {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
-        </Button>
-      </form>
+      ) : (
+        <PickupForm
+          pickup={pickup}
+          onFormSubmit={onFormSubmit}
+          isNewPickup={isNewPickup}
+          submitLoading={submitLoading}
+          submitError={submitError}
+        />
+      )}
     </PageLayout>
   )
 }
@@ -286,5 +151,167 @@ function TextField(props) {
         name: name,
       }}
     />
+  )
+}
+
+function PickupForm(props) {
+  const { pickup, onFormSubmit, isNewPickup, submitLoading, submitError } =
+    props
+
+  return (
+    <form className={styles.pickupForm} onSubmit={onFormSubmit}>
+      <div className={styles.formCategory}>
+        <div className={styles.formCategoryHeader}>Vendor Information</div>
+        <ul className={`${styles.formFieldList}`}>
+          <li>
+            <TextField
+              label='Lead Initials'
+              defaultValue={pickup?.leadInitials}
+              name='Lead Initials'
+            />
+          </li>
+          <li>
+            <DateField
+              label='Pickup Date'
+              defaultValue={pickup?.pickupDate}
+              required
+              name='Pickup Date'
+            />
+          </li>
+          <li>
+            <TextField
+              label='Donor Agency'
+              defaultValue={pickup?.donorAgency}
+              required
+              name='Donor Agency'
+            />
+          </li>
+        </ul>
+      </div>
+      <div className={styles.formCategory}>
+        <div className={styles.formCategoryHeader}>Weights</div>
+        <ul className={`${styles.formFieldList}`}>
+          <li>
+            <NumberField
+              label='Produce'
+              defaultValue={pickup?.weightProduce}
+              name='Lbs Produce'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Dry'
+              defaultValue={pickup?.weightDry}
+              name='Lbs Dry'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Prepared'
+              defaultValue={pickup?.weightPrepared}
+              name='Lbs Prepared'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Meat'
+              defaultValue={pickup?.weightMeat}
+              name='Lbs Meat'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Dairy'
+              defaultValue={pickup?.weightDairy}
+              name='Lbs Dairy'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Bakery'
+              defaultValue={pickup?.weightBakery}
+              name='Lbs Bakery'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Frozen'
+              defaultValue={pickup?.weightFrozen}
+              name='Lbs Frozen'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Beverages'
+              defaultValue={pickup?.weightBeverages}
+              name='Lbs Beverages'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Non-Food'
+              defaultValue={pickup?.weightNonFood}
+              name='Lbs Non-Food'
+              required
+            />
+          </li>
+        </ul>
+      </div>
+      <div className={styles.formCategory}>
+        <div className={styles.formCategoryHeader}>Temperatures</div>
+        <ul className={`${styles.formFieldList}`}>
+          <li>
+            <NumberField
+              label='Refrigerated Start'
+              defaultValue={pickup?.refrigeratedTempStart}
+              name='Refrigerated Temp Start'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Refrigerated End'
+              defaultValue={pickup?.refrigeratedTempEnd}
+              name='Refrigerated Temp End'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Frozen Start'
+              defaultValue={pickup?.frozenTempStart}
+              name='Frozen Temp Start'
+              required
+            />
+          </li>
+          <li>
+            <NumberField
+              label='Frozen End'
+              defaultValue={pickup?.refrigeratedTempEnd}
+              name='Frozen Temp End'
+              required
+            />
+          </li>
+        </ul>
+      </div>
+      <div>
+        <Button size='small' type='submit' loading={submitLoading}>
+          {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
+        </Button>
+        {submitError && !submitLoading && (
+          <div className={styles.error}>
+            Error submitting pickup. Please try again later.
+          </div>
+        )}
+      </div>
+    </form>
   )
 }

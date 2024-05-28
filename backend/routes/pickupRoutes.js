@@ -169,7 +169,7 @@ router.put('/pickups/new', async (req, res) => {
     const ids = Array.from(pickupData)
       .slice(1)
       .map((data) => Number(data[idIndex]))
-    
+
     // newId is one greater than largest current id
     const newId = Math.max(...ids) + 1
 

@@ -1,12 +1,25 @@
 import { useState, useCallback } from 'react'
 import { pickupApiErrors } from './enums.js'
+import samplePickups from '../assets/samplePickups.json'
 
 export default function getPickup(id) {
   const [pickup, setPickup] = useState({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(undefined)
 
-  const fetchPickup = useCallback(async () => {
+  const mockFetch = useCallback(() => {
+    const mockLoadingTime = 500
+    setLoading(true)
+    setTimeout(() => {
+      const found = Array.from(samplePickups).find(
+        (sample) => Number(sample.id) === Number(id)
+      )
+      setPickup(found)
+      setLoading(false)
+    }, mockLoadingTime)
+  })
+
+  const realFetch = useCallback(async () => {
     try {
       setLoading(true)
       const URL = `http://localhost:3000/pickups/${id}`
@@ -35,6 +48,7 @@ export default function getPickup(id) {
     pickup,
     pickupLoading: loading,
     pickupError: error,
-    fetchPickup,
+    fetchPickup:
+      import.meta.env.VITE_DEV_TYPE === 'mobile' ? mockFetch : realFetch,
   }
 }

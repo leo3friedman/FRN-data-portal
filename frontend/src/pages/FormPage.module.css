@@ -55,6 +55,7 @@
 
 .formFieldList li input {
   padding: 0.25rem;
+  font-size: 1rem;
 }
 
 .fieldContainer {
@@ -62,7 +63,9 @@
 }
 
 .fieldContainer label {
+  display: flex;
   width: 8rem;
+  align-items: center;
 }
 
 .fieldContainer input {

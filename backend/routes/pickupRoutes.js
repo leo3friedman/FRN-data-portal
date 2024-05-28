@@ -90,7 +90,30 @@ router.get('/pickups/new', async (req, res) => {
   if (!isValid) {
     return res.status(401).json({ error: 'Not signed in!' })
   }
-  res.json(defaultPickup)
+  // GET the column names and info from Form Specifier sheet
+  try { 
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
+      range: 'Form Specifier!A1:F', // FIXME: allow for variable number of columns
+    })
+    const form_specifier_values = sheetsResponse.data.values
+
+    const form_keys = form_specifier_values[0]
+    
+    const form_specifier_json = form_specifier_values.slice(1).map((row) => {
+      const column_object = {}
+      form_keys.forEach((key, index) => {
+        column_object[key] = row[index]
+      })
+      return column_object
+    })
+    res.json(form_specifier_json)
+  }
+  catch (error) {
+    console.error('error reading form specifier: ', error)
+    return res.status(500).json({ error: 'Error reading form specifier' })
+  }
 })
 
 router.get('/pickups/:pickupId', async (req, res) => {

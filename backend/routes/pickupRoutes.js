@@ -129,7 +129,46 @@ router.get('/pickups/:pickupId', async (req, res) => {
     return res.status(403).json({ error: 'Pickup id must be a number!' })
   }
 
-  // Grab spreadsheet data with Google API
+  const return_format = ['Form Category', 'Form Label', 'Form Type', 'Value']
+  const pickup_list = []
+
+  // GET Form Specifier Values
+  try { 
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
+      range: 'Form Specifier!A1:F', // FIXME: allow for variable number of columns
+    })
+    const form_specifier_values = sheetsResponse.data.values
+    const form_keys = form_specifier_values[0]
+    
+    const form_specifier_json = form_specifier_values.slice(1).map((row) => {
+      const column_object = {}
+      form_keys.forEach((key, index) => {
+        column_object[key] = row[index]
+      })
+      return column_object
+    })
+    
+    form_specifier_json.forEach((row) => {
+      const pickup_object = {}
+      return_format.forEach((key) => {
+        if (key === 'Value') {
+          pickup_object[key] = null
+        }
+        else {
+          pickup_object[key] = row[key]
+        }
+      })
+      pickup_list.push(pickup_object)
+    })
+  }
+  catch (error) {
+    console.error('error reading form specifier: ', error)
+    return res.status(500).json({ error: 'Error reading form specifier' })
+  }
+
+  // GET the actual value from sheet1
   try {
     const sheets = google.sheets({ version: 'v4', auth })
     const sheetsResponse = await sheets.spreadsheets.values.get({
@@ -140,7 +179,6 @@ router.get('/pickups/:pickupId', async (req, res) => {
 
     // Grab column headers from data and find pickup where ids match
     const columnHeaders = pickupData[0]
-
     const pickupDataJsons = pickupData.slice(1).map((pickup) => {
       const pickupJson = {}
       columnHeaders.forEach((header, index) => {
@@ -155,13 +193,16 @@ router.get('/pickups/:pickupId', async (req, res) => {
       console.error('Pickup Not Found! ')
       return res.status(404).json({ error: 'Pickup Not Found!' })
     }
+    
+    pickup_list.forEach((row) => {
+      // TODO : Do we need to check if the column exists first?
+      row['Value'] = pickup[row['Form Label']]
+    })
 
-    const parsedPickup = parsePickup(pickup)
-
-    res.json(parsedPickup)
+    res.json(pickup_list)
   } catch (error) {
-    console.error('error reading sheet: ', error)
-    return res.status(500).json({ error: 'Error reading sheet' })
+    console.error('error reading sheet1: ', error)
+    return res.status(500).json({ error: 'Error reading sheet1' })
   }
 })
 

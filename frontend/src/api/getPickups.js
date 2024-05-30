@@ -4,7 +4,9 @@ import samplePickups from '../assets/samplePickups.json'
 
 export default function getPickups() {
   const [pickups, setPickups] = useState([])
-  const [loading, setLoading] = useState(false)
+
+  // set loading default to true to prevent flash, TODO: is there a better way?
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(undefined)
 
   const mockFetch = useCallback(() => {

@@ -18,6 +18,7 @@ const oauth2Client = new google.auth.OAuth2(
 router.get('/googleauth', (req, res) => {
   // Generate a secure random state value.
   const state = crypto.randomBytes(32).toString('hex')
+
   // Store state in the session
   req.session.state = state
 

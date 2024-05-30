@@ -12,3 +12,7 @@
   gap: 2rem;
   align-items: center;
 }
+
+.error {
+  color: red;
+}

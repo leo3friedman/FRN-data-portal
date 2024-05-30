@@ -3,7 +3,9 @@ import { pickupApiErrors } from './enums.js'
 
 export default function useNewPickup() {
   const [pickup, setPickup] = useState({})
-  const [loading, setLoading] = useState(false)
+
+  // set loading default to true to prevent flash, TODO: is there a better way?
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(undefined)
 
   const fetchPickup = useCallback(async () => {

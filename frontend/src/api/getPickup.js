@@ -4,7 +4,9 @@ import samplePickups from '../assets/samplePickups.json'
 
 export default function getPickup(id) {
   const [pickup, setPickup] = useState({})
-  const [loading, setLoading] = useState(false)
+
+  // set loading default to true to prevent flash, TODO: is there a better way?
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(undefined)
 
   const mockFetch = useCallback(() => {
@@ -48,7 +50,6 @@ export default function getPickup(id) {
     pickup,
     pickupLoading: loading,
     pickupError: error,
-    fetchPickup:
-      import.meta.env.VITE_DEV_TYPE === 'mobile' ? mockFetch : realFetch,
+    fetchPickup: import.meta.env.VITE_MOCK_BACKEND ? mockFetch : realFetch,
   }
 }

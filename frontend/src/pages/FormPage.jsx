@@ -75,24 +75,16 @@ export default function FormPage(props) {
           {isNewPickup ? 'Create New Pickup' : 'Edit Pickup'}
         </header>
       </div>
-      {pickupLoading ? (
-        <div className={styles.loadingCircleContainer}>
-          <LoadingCircle />
-        </div>
-      ) : pickupError ? (
-        <div className={styles.error}>
-          Error getting pickups. <br /> <br /> Please click <a href=''>here</a>{' '}
-          to try again.
-        </div>
-      ) : (
-        <PickupForm
-          pickup={pickup}
-          onFormSubmit={onFormSubmit}
-          isNewPickup={isNewPickup}
-          submitLoading={submitLoading}
-          submitError={submitError}
-        />
-      )}
+
+      <PickupForm
+        pickupLoading={pickupLoading}
+        pickupError={pickupError}
+        pickup={pickup}
+        onFormSubmit={onFormSubmit}
+        isNewPickup={isNewPickup}
+        submitLoading={submitLoading}
+        submitError={submitError}
+      />
     </PageLayout>
   )
 }
@@ -155,8 +147,33 @@ function TextField(props) {
 }
 
 function PickupForm(props) {
-  const { pickup, onFormSubmit, isNewPickup, submitLoading, submitError } =
-    props
+  const {
+    pickup,
+    onFormSubmit,
+    isNewPickup,
+    submitLoading,
+    submitError,
+    pickupLoading,
+    pickupError,
+  } = props
+
+  if (pickupLoading) {
+    return (
+      <div className={styles.loadingCircleContainer}>
+        <LoadingCircle />
+      </div>
+    )
+  }
+
+  if (pickupError) {
+    console.log(pickupError)
+    return (
+      <div className={styles.error}>
+        Error getting pickups. <br /> <br /> Please click <a href=''>here</a> to
+        try again.
+      </div>
+    )
+  }
 
   return (
     <form className={styles.pickupForm} onSubmit={onFormSubmit}>

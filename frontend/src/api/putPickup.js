@@ -50,7 +50,6 @@ export default function putPickup(pickupId) {
     submitLoading: loading,
     submitError: error,
     submitSuccess: success,
-    submitPickup:
-      import.meta.env.VITE_DEV_TYPE === 'mobile' ? mockSubmit : realSubmit,
+    submitPickup: import.meta.env.VITE_MOCK_BACKEND ? mockSubmit : realSubmit,
   }
 }

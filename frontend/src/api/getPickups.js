@@ -46,7 +46,6 @@ export default function getPickups() {
     pickups,
     pickupsLoading: loading,
     pickupsError: error,
-    fetchPickups:
-      import.meta.env.VITE_DEV_TYPE === 'mobile' ? mockFetch : realFetch,
+    fetchPickups: import.meta.env.VITE_MOCK_BACKEND ? mockFetch : realFetch,
   }
 }

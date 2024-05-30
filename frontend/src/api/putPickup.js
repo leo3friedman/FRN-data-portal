@@ -18,15 +18,13 @@ export default function putPickup(pickupId) {
   const realSubmit = useCallback(async (pickup) => {
     try {
       setLoading(true)
-      const response = await fetch(
-        `http://localhost:3000/pickups/${pickupId}`,
-        {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(pickup),
-        }
-      )
+      const expressUrl = import.meta.env.VITE_EXPRESS_URL
+      const response = await fetch(`${expressUrl}/pickups/${pickupId}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pickup),
+      })
 
       if (!response.ok) {
         if (response.status === 401) {

@@ -24,7 +24,8 @@ export default function getPickup(id) {
   const realFetch = useCallback(async () => {
     try {
       setLoading(true)
-      const URL = `http://localhost:3000/pickups/${id}`
+      const expressUrl = import.meta.env.VITE_EXPRESS_URL
+      const URL = `${expressUrl}/pickups/${id}`
       const response = await fetch(URL, {
         method: 'GET',
         credentials: 'include',

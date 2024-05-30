@@ -212,7 +212,7 @@ function PickupForm(props) {
             <NumberField
               label='Produce'
               defaultValue={pickup?.weightProduce}
-              name='Lbs Produce'
+              name='Produce'
               required
             />
           </li>
@@ -220,7 +220,7 @@ function PickupForm(props) {
             <NumberField
               label='Dry'
               defaultValue={pickup?.weightDry}
-              name='Lbs Dry'
+              name='Dry'
               required
             />
           </li>
@@ -228,7 +228,7 @@ function PickupForm(props) {
             <NumberField
               label='Prepared'
               defaultValue={pickup?.weightPrepared}
-              name='Lbs Prepared'
+              name='Prepared'
               required
             />
           </li>
@@ -236,7 +236,7 @@ function PickupForm(props) {
             <NumberField
               label='Meat'
               defaultValue={pickup?.weightMeat}
-              name='Lbs Meat'
+              name='Meat'
               required
             />
           </li>
@@ -244,7 +244,7 @@ function PickupForm(props) {
             <NumberField
               label='Dairy'
               defaultValue={pickup?.weightDairy}
-              name='Lbs Dairy'
+              name='Dairy'
               required
             />
           </li>
@@ -252,7 +252,7 @@ function PickupForm(props) {
             <NumberField
               label='Bakery'
               defaultValue={pickup?.weightBakery}
-              name='Lbs Bakery'
+              name='Bakery'
               required
             />
           </li>
@@ -260,7 +260,7 @@ function PickupForm(props) {
             <NumberField
               label='Frozen'
               defaultValue={pickup?.weightFrozen}
-              name='Lbs Frozen'
+              name='Frozen'
               required
             />
           </li>
@@ -268,7 +268,7 @@ function PickupForm(props) {
             <NumberField
               label='Beverages'
               defaultValue={pickup?.weightBeverages}
-              name='Lbs Beverages'
+              name='Beverages'
               required
             />
           </li>
@@ -276,7 +276,7 @@ function PickupForm(props) {
             <NumberField
               label='Non-Food'
               defaultValue={pickup?.weightNonFood}
-              name='Lbs Non-Food'
+              name='Non-Food'
               required
             />
           </li>
@@ -287,17 +287,17 @@ function PickupForm(props) {
         <ul className={`${styles.formFieldList}`}>
           <li>
             <NumberField
-              label='Refrigerated Start'
+              label='Refridgerated Start'
               defaultValue={pickup?.refrigeratedTempStart}
-              name='Refrigerated Temp Start'
+              name='Refridgerated Start'
               required
             />
           </li>
           <li>
             <NumberField
-              label='Refrigerated End'
+              label='Refridgerated End'
               defaultValue={pickup?.refrigeratedTempEnd}
-              name='Refrigerated Temp End'
+              name='Refridgerated End'
               required
             />
           </li>
@@ -305,7 +305,7 @@ function PickupForm(props) {
             <NumberField
               label='Frozen Start'
               defaultValue={pickup?.frozenTempStart}
-              name='Frozen Temp Start'
+              name='Frozen Start'
               required
             />
           </li>
@@ -313,7 +313,7 @@ function PickupForm(props) {
             <NumberField
               label='Frozen End'
               defaultValue={pickup?.refrigeratedTempEnd}
-              name='Frozen Temp End'
+              name='Frozen End'
               required
             />
           </li>

@@ -1,19 +1,24 @@
+import dotenv from 'dotenv'
 import express from 'express'
+import crypto from 'crypto'
 import session from 'express-session'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import loginRoutes from './routes/loginRoutes.js'
 import pickupRoutes from './routes/pickupRoutes.js'
 
+dotenv.config()
+
 const app = express()
-const port = 3000
+const port = process.env.EXPRESS_PORT
 const sessionOptions = {
-  secret: 'your_secure_secret_key', // TODO: Replace with a strong secret
+  secret: crypto.randomBytes(32).toString('hex'),
   resave: false,
   saveUninitialized: false,
+  cookie: { secure: true, httpOnly: true },
 }
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: process.env.CLIENT_URL,
   credentials: true,
 }
 

@@ -131,11 +131,11 @@ router.get("/pickups/new", async (req, res) => {
 
 router.get("/pickups/:pickupId", async (req, res) => {
   // validate user is signed in
-  // const token = req?.cookies?.token
-  // const isValid = await isValidToken(token)
-  // if (!isValid) {
-  //   return res.status(401).json({ error: 'Not signed in!' })
-  // }
+  const token = req?.cookies?.token
+  const isValid = await isValidToken(token)
+  if (!isValid) {
+    return res.status(401).json({ error: 'Not signed in!' })
+  }
   const id = req?.params?.pickupId
 
   if (isNaN(id)) {
@@ -143,7 +143,6 @@ router.get("/pickups/:pickupId", async (req, res) => {
   }
 
   const pickup_list = []
-  // TODO: Add same format as pickups new
   // GET Form Specifier Values
   try {
     const sheets = google.sheets({ version: "v4", auth })
@@ -214,7 +213,6 @@ router.get("/pickups/:pickupId", async (req, res) => {
     }
 
     pickup_list.forEach((row) => {
-      // TODO : Do we need to check if the column exists first?
       row["Value"] = pickup[row["Form Label"].trim()]
     })
 

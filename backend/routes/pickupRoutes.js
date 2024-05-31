@@ -313,4 +313,20 @@ function toPickupDate(pastDate = Date.now()) {
   }
 }
 
+export async function getValidEmails() {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
+      range: 'Allowed Emails',
+    })
+    const data = sheetsResponse.data.values
+    const formattedData = data.slice(1).flat()
+    return formattedData
+  } catch (error) {
+    console.log(error)
+    return []
+  }
+}
+
 export default router

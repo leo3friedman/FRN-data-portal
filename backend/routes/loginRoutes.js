@@ -3,9 +3,11 @@ import { google } from 'googleapis'
 import url from 'url'
 import express from 'express'
 import dotenv from 'dotenv'
-import axios from 'axios'
+import { getValidEmails } from './pickupRoutes.js'
 
 dotenv.config()
+
+let userTokens = []
 
 const router = express.Router()
 
@@ -28,7 +30,7 @@ router.get('/googleauth', (req, res) => {
       scope: ['https://www.googleapis.com/auth/userinfo.email'],
       // Include the state parameter to reduce the risk of CSRF attacks.
       state: state,
-      consent: 'prompt',
+      prompt: 'consent',
     })
 
     return res.redirect(authorizationUrl)
@@ -52,12 +54,38 @@ router.get('/oauth2callback', async (req, res) => {
     }
 
     const { tokens } = await oauth2Client.getToken(q.code)
-    const { refresh_token } = tokens
-    res.cookie('token', refresh_token, {
+
+    oauth2Client.setCredentials(tokens)
+
+    const oauth2 = google.oauth2({
+      version: 'v2',
+      auth: oauth2Client,
+    })
+
+    const userInfo = await oauth2.userinfo.get()
+    const userEmail = userInfo.data.email
+
+    // get list of allowed emails
+    const allowedEmails = await getValidEmails()
+
+    if (!allowedEmails.includes(userEmail)) {
+      return res
+        .status(403)
+        .json({ error: `Email ${userEmail} is not allowed` })
+    }
+
+    const token = crypto.randomBytes(32).toString('hex')
+
+    res.cookie('token', token, {
       httpOnly: true,
       secure: true,
       encode: (v) => v,
     })
+
+    // store token in memory for later verification
+    userTokens.push(token)
+
+    console.log(`added new token: ${token}`, { userTokens })
 
     res.redirect(process.env.CLIENT_URL)
   } catch (error) {
@@ -69,6 +97,9 @@ router.get('/oauth2callback', async (req, res) => {
 router.post('/logout', (req, res) => {
   try {
     // TODO: break google connection
+    const userToken = req?.cookies?.token
+
+    tokens = tokens.filter((t) => t != userToken)
     res.clearCookie('token')
     return res.status(200).json({ message: 'Logout successful!' })
   } catch (error) {
@@ -77,25 +108,10 @@ router.post('/logout', (req, res) => {
   }
 })
 
-export async function isValidToken(refreshToken) {
+export async function isValidToken(token) {
   try {
-    const response = await axios.post(
-      'https://oauth2.googleapis.com/token',
-      null,
-      {
-        params: {
-          refresh_token: refreshToken,
-          client_id: process.env.CLIENT_ID,
-          client_secret: process.env.CLIENT_SECRET,
-          grant_type: 'refresh_token',
-        },
-      }
-    )
-
-    const accessToken = response?.data?.access_token
-    // TODO: use accessToken to verify the account email is whitelisted
-
-    return true
+    // TODO: validate against valid emails to ensure token is still valid
+    return userTokens.includes(token)
   } catch (error) {
     console.log(error)
     return false

@@ -85,26 +85,43 @@ router.get('/pickups', async (req, res) => {
 
 router.get('/pickups/new', async (req, res) => {
   // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
-  }
+  // const token = req?.cookies?.token
+  // const isValid = await isValidToken(token)
+  // if (!isValid) {
+  //   return res.status(401).json({ error: 'Not signed in!' })
+  // }
   // GET the column names and info from Form Specifier sheet
   try { 
     const sheets = google.sheets({ version: 'v4', auth })
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
-      range: 'Form Specifier!A1:F', // FIXME: allow for variable number of columns
+      range: 'Form Specifier', // FIXME: allow for variable number of columns
     })
     const form_specifier_values = sheetsResponse.data.values
 
     const form_keys = form_specifier_values[0]
-    
+    const return_format = form_keys
+    return_format.push('Value')
     const form_specifier_json = form_specifier_values.slice(1).map((row) => {
       const column_object = {}
-      form_keys.forEach((key, index) => {
-        column_object[key] = row[index]
+      return_format.forEach((key, index) => {
+        // First check if the key we are trying to format is the value
+        if (key === 'Value') {
+          if (column_object['Form Type'] === "Date") {
+            column_object[key] = toPickupDate()
+          }
+          else if (column_object['Form Type'] === "Number") {
+            column_object[key] = 0
+          }
+          else {
+            // select or text should both be empty strings
+            column_object[key] = ''
+          }
+        }
+        else {
+          // otherwise set the key's value to the form specififier
+          column_object[key] = row[index]
+        }
       })
       return column_object
     })
@@ -118,20 +135,20 @@ router.get('/pickups/new', async (req, res) => {
 
 router.get('/pickups/:pickupId', async (req, res) => {
   // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
-  }
+  // const token = req?.cookies?.token
+  // const isValid = await isValidToken(token)
+  // if (!isValid) {
+  //   return res.status(401).json({ error: 'Not signed in!' })
+  // }
   const id = req?.params?.pickupId
 
   if (isNaN(id)) {
     return res.status(403).json({ error: 'Pickup id must be a number!' })
   }
 
-  const return_format = ['Form Category', 'Form Label', 'Form Type', 'Value']
+  //const return_format = ['Form Category', 'Form Label', 'Form Type', 'Value']
   const pickup_list = []
-
+  // TODO: Add same format as pickups new
   // GET Form Specifier Values
   try { 
     const sheets = google.sheets({ version: 'v4', auth })
@@ -150,6 +167,8 @@ router.get('/pickups/:pickupId', async (req, res) => {
       return column_object
     })
     
+    const return_format = form_keys
+    return_format.push('Value')
     form_specifier_json.forEach((row) => {
       const pickup_object = {}
       return_format.forEach((key) => {
@@ -182,7 +201,7 @@ router.get('/pickups/:pickupId', async (req, res) => {
     const pickupDataJsons = pickupData.slice(1).map((pickup) => {
       const pickupJson = {}
       columnHeaders.forEach((header, index) => {
-        pickupJson[header] = pickup[index]
+        pickupJson[header] = pickup[index].trim()
       })
       return pickupJson
     })
@@ -193,10 +212,13 @@ router.get('/pickups/:pickupId', async (req, res) => {
       console.error('Pickup Not Found! ')
       return res.status(404).json({ error: 'Pickup Not Found!' })
     }
-    
+    // TODO: if no value in the table, send default vale
+
     pickup_list.forEach((row) => {
       // TODO : Do we need to check if the column exists first?
-      row['Value'] = pickup[row['Form Label']]
+      
+        row['Value'] = pickup[row['Form Label'].trim()]
+
     })
 
     res.json(pickup_list)

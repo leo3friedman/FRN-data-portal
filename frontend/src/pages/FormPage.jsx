@@ -60,7 +60,6 @@ export default function FormPage(props) {
     }, {})
 
     if (!isNewPickup) formData['Id'] = pickupId
-
     submitPickup(formData)
   }
 
@@ -145,8 +144,27 @@ function TextField(props) {
   )
 }
 
+function SelectField(props) {
+  const { label, required, defaultValue, selectOptions } = props
+  return (
+    <div className={styles.fieldContainer}>
+      <label>{label}</label>
+      <select
+        required={required}
+        defaultValue={selectOptions.includes(defaultValue) ? defaultValue : ''}
+        name={label}>
+        <option value={''} disabled>
+          Select One
+        </option>
+        {selectOptions?.length &&
+          selectOptions?.map((option) => <option>{option}</option>)}
+      </select>
+    </div>
+  )
+}
+
 function FormField(props) {
-  const { label, type, required, value } = props
+  const { label, type, required, value, selectOptions } = props
 
   if (type === 'Number') {
     return (
@@ -155,7 +173,14 @@ function FormField(props) {
   }
 
   if (type === 'Select') {
-    return <TextField label={label} required={required} defaultValue={value} />
+    return (
+      <SelectField
+        label={label}
+        required={required}
+        defaultValue={value}
+        selectOptions={selectOptions}
+      />
+    )
   }
 
   if (type === 'Date') {
@@ -214,6 +239,9 @@ function PickupForm(props) {
       type: fieldInfo?.['Form Type'],
       required: fieldInfo?.['Required'] === 'TRUE',
       value: fieldInfo?.['Value'],
+      selectOptions: fieldInfo?.['Select Options']
+        ? fieldInfo?.['Select Options'].split(',')
+        : [],
     })
     return blueprint
   }, [])

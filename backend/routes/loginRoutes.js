@@ -35,25 +35,30 @@ router.get('/googleauth', (req, res) => {
 
     return res.redirect(authorizationUrl)
   } catch (error) {
-    return res.status(500).json({ error: 'googleauth failed!' })
+    const errorMessage = `Login failed. Please try again later. Error Code: 500`
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=${errorMessage}`)
   }
 })
 
 router.get('/oauth2callback', async (req, res) => {
   try {
-    const q = url.parse(req.url, true).query
+    const urlQuery = url.parse(req.url, true).query
 
-    if (q.error) {
-      return res.status(400).json({ error: 'Invalid query parameters' })
+    if (urlQuery.error) {
+      const errorMessage = `Authentication failed, invalid query paremeters. Please try again later. Error Code: 400`
+      return res.redirect(
+        `${process.env.CLIENT_URL}/login?error=${errorMessage}`
+      )
     }
 
-    if (q.state !== req.session.state) {
-      return res
-        .status(403)
-        .json({ error: 'State mismatch. Possible CSRF attack' })
+    if (urlQuery.state !== req.session.state) {
+      const errorMessage = `Authentication failed, possible CSRF attack. Please try again later. Error Code: 403`
+      return res.redirect(
+        `${process.env.CLIENT_URL}/login?error=${errorMessage}`
+      )
     }
 
-    const { tokens } = await oauth2Client.getToken(q.code)
+    const { tokens } = await oauth2Client.getToken(urlQuery.code)
 
     oauth2Client.setCredentials(tokens)
 
@@ -69,9 +74,10 @@ router.get('/oauth2callback', async (req, res) => {
     const allowedEmails = await getValidEmails()
 
     if (!allowedEmails.includes(userEmail)) {
-      return res
-        .status(403)
-        .json({ error: `Email ${userEmail} is not allowed` })
+      const errorMessage = `Email ${userEmail} is not allowed. Please sign in with a different Google account.`
+      return res.redirect(
+        `${process.env.CLIENT_URL}/login?error=${errorMessage}`
+      )
     }
 
     const token = crypto.randomBytes(32).toString('hex')
@@ -87,10 +93,10 @@ router.get('/oauth2callback', async (req, res) => {
 
     console.log(`added new token: ${token}`, { userTokens })
 
-    res.redirect(process.env.CLIENT_URL)
+    return res.redirect(process.env.CLIENT_URL)
   } catch (error) {
-    console.log(error)
-    return res.status(500).json({ error: 'oauth2callback failed!' })
+    const errorMessage = `Authentication failed. Please try again later. Error Code: 500`
+    return res.redirect(`${process.env.CLIENT_URL}/login?error=${errorMessage}`)
   }
 })
 
@@ -99,7 +105,7 @@ router.post('/logout', (req, res) => {
     // TODO: break google connection
     const userToken = req?.cookies?.token
 
-    tokens = tokens.filter((t) => t != userToken)
+    userTokens = userTokens.filter((t) => t != userToken)
     res.clearCookie('token')
     return res.status(200).json({ message: 'Logout successful!' })
   } catch (error) {

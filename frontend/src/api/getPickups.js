@@ -4,7 +4,9 @@ import samplePickups from '../assets/samplePickups.json'
 
 export default function getPickups() {
   const [pickups, setPickups] = useState([])
-  const [loading, setLoading] = useState(false)
+
+  // set loading default to true to prevent flash, TODO: is there a better way?
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(undefined)
 
   const mockFetch = useCallback(() => {
@@ -19,7 +21,8 @@ export default function getPickups() {
   const realFetch = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:3000/pickups', {
+      const expressUrl = import.meta.env.VITE_EXPRESS_URL
+      const response = await fetch(`${expressUrl}/api/pickups`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -46,7 +49,6 @@ export default function getPickups() {
     pickups,
     pickupsLoading: loading,
     pickupsError: error,
-    fetchPickups:
-      import.meta.env.VITE_DEV_TYPE === 'mobile' ? mockFetch : realFetch,
+    fetchPickups: import.meta.env.VITE_MOCK_BACKEND ? mockFetch : realFetch,
   }
 }

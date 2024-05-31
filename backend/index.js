@@ -1,3 +1,4 @@
+import dotenv from 'dotenv'
 import express from 'express'
 import session from 'express-session'
 import cookieParser from 'cookie-parser'
@@ -5,15 +6,17 @@ import cors from 'cors'
 import loginRoutes from './routes/loginRoutes.js'
 import pickupRoutes from './routes/pickupRoutes.js'
 
+dotenv.config()
+
 const app = express()
-const port = 3000
+const port = process.env.EXPRESS_PORT
 const sessionOptions = {
-  secret: 'your_secure_secret_key', // TODO: Replace with a strong secret
+  secret: process.env.EXPRESS_SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
 }
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: process.env.CLIENT_URL,
   credentials: true,
 }
 
@@ -23,9 +26,9 @@ app.use(cors(corsOptions))
 
 app.use(cookieParser())
 
-app.use('/', loginRoutes)
+app.use('/api/', loginRoutes)
 
-app.use('/', pickupRoutes)
+app.use('/api/', pickupRoutes)
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`)

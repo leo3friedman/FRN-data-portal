@@ -1,19 +1,69 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, LoadingCircle } from '../components/index'
 import { Pickup, PageLayout } from '../components/index.js'
-
+import searchIcon from '../assets/searchIcon.svg'
 import logOutIcon from '../assets/logOutIcon.svg'
 import styles from './PickupsPage.module.css'
-
 import { pickupApiErrors } from '../api/enums.js'
 import { getPickups } from '../api/index.js'
 
 export default function PickupsPage() {
   const navigate = useNavigate()
+  const { pickups, pickupsLoading, fetchPickups, pickupsError } = getPickups()
+  const [filteredPickups, setFilteredPickups] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    fetchPickups()
+  }, [])
+
+  function isInQuery(pickup) {
+    const { pickupDate, donorAgency } = pickup
+    const queryInDate =
+      pickupDate &&
+      pickupDate.toLowerCase().includes(String(searchQuery).toLowerCase())
+    const queryInAgency =
+      donorAgency &&
+      donorAgency.toLowerCase().includes(String(searchQuery).toLowerCase())
+    return queryInDate || queryInAgency
+  }
+
+  /**
+   *
+   * @param {Object} pickupA
+   * @param {Object} pickupB
+   * @returns 1 if pickupA < pickupB, -1 if pickupA > pickupB, 0 if equal
+   */
+  function pickupCompare(pickupA, pickupB) {
+    const dateA = pickupA?.pickupDate
+    const dateB = pickupB?.pickupDate
+
+    if (!dateA) return -1
+    if (!dateB) return 1
+
+    return new Date(dateA) - new Date(dateB)
+  }
+
+  useEffect(() => {
+    const filtered = pickups?.length ? pickups.filter(isInQuery) : []
+
+    // sort by pickupDate then reverse to see most recent first
+    const sorted = filtered.sort(pickupCompare).reverse()
+    setFilteredPickups(sorted)
+  }, [pickups, searchQuery])
+
+  useEffect(() => {
+    // navigate to login if not signed in
+    if (pickupsError === pickupApiErrors.NOT_SIGNED_IN) {
+      navigate('/login')
+    }
+  }, [pickupsError])
+
   async function logout() {
     try {
-      const response = await fetch('http://localhost:3000/logout', {
+      const expressUrl = import.meta.env.VITE_EXPRESS_URL
+      const response = await fetch(`${expressUrl}/api/logout`, {
         method: 'POST',
         credentials: 'include',
       })
@@ -44,24 +94,26 @@ export default function PickupsPage() {
           </Button>
         </header>
       </div>
-      <PickupsList />
+      <div className={styles.search}>
+        <img src={searchIcon} />
+        <input
+          className={styles.searchInput}
+          type='text'
+          placeholder='Search'
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+      <PickupsList
+        pickups={filteredPickups}
+        pickupsError={pickupsError}
+        pickupsLoading={pickupsLoading}
+      />
     </PageLayout>
   )
 }
 
-function PickupsList() {
-  const navigate = useNavigate()
-  const { pickups, pickupsLoading, fetchPickups, pickupsError } = getPickups()
-
-  useEffect(() => {
-    fetchPickups()
-  }, [])
-
-  useEffect(() => {
-    if (pickupsError === pickupApiErrors.NOT_SIGNED_IN) {
-      navigate('/login')
-    }
-  }, [pickupsError])
+function PickupsList(props) {
+  const { pickups, pickupsLoading, pickupsError } = props
 
   if (pickupsLoading) {
     return (

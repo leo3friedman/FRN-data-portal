@@ -1,10 +1,10 @@
-import express from "express"
-import dotenv from "dotenv"
-import sampleData from "./sampleData.json" assert { type: "json" }
-import { isValidToken } from "./loginRoutes.js"
-import { google } from "googleapis"
-import { GoogleAuth } from "google-auth-library"
-import credentials from "./credentials.json" assert { type: "json" }
+import express from 'express'
+import dotenv from 'dotenv'
+import crypto from 'crypto'
+import { isValidToken } from './loginRoutes.js'
+import { google } from 'googleapis'
+import { GoogleAuth } from 'google-auth-library'
+import credentials from './credentials.json' assert { type: 'json' }
 
 dotenv.config()
 
@@ -138,8 +138,8 @@ router.get("/pickups/:pickupId", async (req, res) => {
   }
   const id = req?.params?.pickupId
 
-  if (isNaN(id)) {
-    return res.status(403).json({ error: "Pickup id must be a number!" })
+  if (!id) {
+    return res.status(403).json({ error: 'Request missing pickupId!' })
   }
 
   const pickup_list = []
@@ -185,7 +185,6 @@ router.get("/pickups/:pickupId", async (req, res) => {
     console.error("error reading form specifier: ", error)
     return res.status(500).json({ error: "Error reading form specifier" })
   }
-
   // GET the actual value from sheet1
   try {
     const sheets = google.sheets({ version: "v4", auth })
@@ -208,8 +207,8 @@ router.get("/pickups/:pickupId", async (req, res) => {
     const pickup = pickupDataJsons.find((pickup) => pickup["Id"] === id)
 
     if (!pickup) {
-      console.error("Pickup Not Found! ")
-      return res.status(404).json({ error: "Pickup Not Found!" })
+      console.error('Pickup Not Found!')
+      return res.status(404).json({ error: 'Pickup Not Found!' })
     }
 
     pickup_list.forEach((row) => {
@@ -243,25 +242,11 @@ router.put("/pickups/new", async (req, res) => {
 
     const columnHeaders = pickupData[0]
 
-    // index of id field in a pickup data row
-    const idIndex = columnHeaders.indexOf("Id")
-
-    // convert pickupData to list of ids
-    const ids = Array.from(pickupData)
-      .slice(1)
-      .map((data) => Number(data[idIndex]))
-
-    // newId is one greater than largest current id
-    const newId = Math.max(...ids) + 1
-
     // TODO: validate body
     const newPickup = req?.body
 
     // set newId
-    newPickup["Id"] = newId
-
-    // format pickup date from string to date
-    newPickup["Pickup Date"] = toPickupDate(newPickup["Pickup Date"])
+    newPickup['Id'] = crypto.randomUUID()
 
     // set last updated to now
     newPickup["Last Updated Date"] = toPickupDate()
@@ -305,19 +290,16 @@ router.put("/pickups/:pickupId", async (req, res) => {
 
   const id = req?.params?.pickupId
 
-  if (isNaN(id)) {
-    return res.status(403).json({ error: "Pickup id must be a number!" })
+  if (!id) {
+    return res.status(403).json({ error: 'Request missing pickupId!' })
   }
 
   const updatedPickup = req?.body
 
-  // format pickup date from string to date
-  updatedPickup["Pickup Date"] = toPickupDate(updatedPickup["Pickup Date"])
-
   // set last updated to now
   updatedPickup["Last Updated Date"] = toPickupDate()
 
-  if (Number(id) !== Number(updatedPickup["Id"])) {
+  if (id !== updatedPickup['Id']) {
     return res
       .status(403)
       .json({ error: "Pickup id must match updated pickup data" })
@@ -373,32 +355,28 @@ router.put("/pickups/:pickupId", async (req, res) => {
 // TODO: make sure to validate if signed in before (implementation in /pickups route)
 
 function parsePickup(pickup) {
-  const pickupDate = toPickupDate(pickup?.["Pickup Date"])
-
   return {
-    id: pickup?.["Id"] ?? defaultPickup.id,
-    pickupDate: pickupDate,
+    id: pickup?.['Id'] ?? defaultPickup.id,
+    pickupDate: pickup?.['Pickup Date'] ?? toPickupDate(),
     lastUpdatedDate:
-      pickup?.["Last Updated Date"] ?? defaultPickup.lastUpdatedDate,
-    donorAgency: pickup?.["Donor Agency"] ?? defaultPickup.donorAgency,
-    leadInitials: pickup?.["Lead Initials"] ?? defaultPickup.leadInitials,
-    weightBakery: pickup?.["Lbs Bakery"] ?? defaultPickup.weightBakery,
-    weightBeverages: pickup?.["Lbs Beverages"] ?? defaultPickup.weightBeverages,
-    weightDairy: pickup?.["Lbs Dairy"] ?? defaultPickup.weightDairy,
-    weightDry: pickup?.["Lbs Dry"] ?? defaultPickup.weightDry,
-    weightFrozen: pickup?.["Lbs Frozen"] ?? defaultPickup.weightFrozen,
-    weightMeat: pickup?.["Lbs Meat"] ?? defaultPickup.weightMeat,
-    weightNonFood: pickup?.["Lbs Non-Food"] ?? defaultPickup.weightNonFood,
-    weightPrepared: pickup?.["Lbs Prepared"] ?? defaultPickup.weightPrepared,
-    weightProduce: pickup?.["Lbs Produce"] ?? defaultPickup.weightProduce,
-    frozenTempStart:
-      pickup?.["Frozen Temp Start"] ?? defaultPickup.frozenTempStart,
-    frozenTempEnd: pickup?.["Frozen Temp End"] ?? defaultPickup.frozenTempEnd,
+      pickup?.['Last Updated Date'] ?? defaultPickup.lastUpdatedDate,
+    donorAgency: pickup?.['Donor Agency'] ?? defaultPickup.donorAgency,
+    leadInitials: pickup?.['Lead Initials'] ?? defaultPickup.leadInitials,
+    weightBakery: pickup?.['Bakery'] ?? defaultPickup.weightBakery,
+    weightBeverages: pickup?.['Beverages'] ?? defaultPickup.weightBeverages,
+    weightDairy: pickup?.['Dairy'] ?? defaultPickup.weightDairy,
+    weightDry: pickup?.['Dry'] ?? defaultPickup.weightDry,
+    weightFrozen: pickup?.['Lbs Frozen'] ?? defaultPickup.weightFrozen,
+    weightMeat: pickup?.['Meat'] ?? defaultPickup.weightMeat,
+    weightNonFood: pickup?.['Non-Food'] ?? defaultPickup.weightNonFood,
+    weightPrepared: pickup?.['Prepared'] ?? defaultPickup.weightPrepared,
+    weightProduce: pickup?.['Produce'] ?? defaultPickup.weightProduce,
+    frozenTempStart: pickup?.['Frozen Start'] ?? defaultPickup.frozenTempStart,
+    frozenTempEnd: pickup?.['Frozen End'] ?? defaultPickup.frozenTempEnd,
     refrigeratedTempStart:
-      pickup?.["Refrigerated Temp Start"] ??
-      defaultPickup.refrigeratedTempStart,
+      pickup?.['Refrigerated Start'] ?? defaultPickup.refrigeratedTempStart,
     refrigeratedTempEnd:
-      pickup?.["Refrigerated Temp Start"] ?? defaultPickup.refrigeratedTempEnd,
+      pickup?.['Refrigerated Start'] ?? defaultPickup.refrigeratedTempEnd,
   }
 }
 
@@ -412,6 +390,22 @@ function toPickupDate(pastDate = Date.now()) {
   } catch (error) {
     console.log(error)
     return pastDate
+  }
+}
+
+export async function getValidEmails() {
+  try {
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
+      range: 'Allowed Emails',
+    })
+    const data = sheetsResponse.data.values
+    const formattedData = data.slice(1).flat()
+    return formattedData
+  } catch (error) {
+    console.log(error)
+    return []
   }
 }
 

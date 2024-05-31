@@ -75,24 +75,16 @@ export default function FormPage(props) {
           {isNewPickup ? 'Create New Pickup' : 'Edit Pickup'}
         </header>
       </div>
-      {pickupLoading ? (
-        <div className={styles.loadingCircleContainer}>
-          <LoadingCircle />
-        </div>
-      ) : pickupError ? (
-        <div className={styles.error}>
-          Error getting pickups. <br /> <br /> Please click <a href=''>here</a>{' '}
-          to try again.
-        </div>
-      ) : (
-        <PickupForm
-          pickup={pickup}
-          onFormSubmit={onFormSubmit}
-          isNewPickup={isNewPickup}
-          submitLoading={submitLoading}
-          submitError={submitError}
-        />
-      )}
+
+      <PickupForm
+        pickupLoading={pickupLoading}
+        pickupError={pickupError}
+        pickup={pickup}
+        onFormSubmit={onFormSubmit}
+        isNewPickup={isNewPickup}
+        submitLoading={submitLoading}
+        submitError={submitError}
+      />
     </PageLayout>
   )
 }
@@ -115,7 +107,6 @@ function NumberField(props) {
       inputProps={{
         type: 'number',
         min: '0',
-        max: '10000',
         defaultValue: defaultValue,
         required: required,
         name: name,
@@ -155,8 +146,33 @@ function TextField(props) {
 }
 
 function PickupForm(props) {
-  const { pickup, onFormSubmit, isNewPickup, submitLoading, submitError } =
-    props
+  const {
+    pickup,
+    onFormSubmit,
+    isNewPickup,
+    submitLoading,
+    submitError,
+    pickupLoading,
+    pickupError,
+  } = props
+
+  if (pickupLoading) {
+    return (
+      <div className={styles.loadingCircleContainer}>
+        <LoadingCircle />
+      </div>
+    )
+  }
+
+  if (pickupError) {
+    console.log(pickupError)
+    return (
+      <div className={styles.error}>
+        Error getting pickups. <br /> <br /> Please click <a href=''>here</a> to
+        try again.
+      </div>
+    )
+  }
 
   return (
     <form className={styles.pickupForm} onSubmit={onFormSubmit}>
@@ -195,7 +211,7 @@ function PickupForm(props) {
             <NumberField
               label='Produce'
               defaultValue={pickup?.weightProduce}
-              name='Lbs Produce'
+              name='Produce'
               required
             />
           </li>
@@ -203,7 +219,7 @@ function PickupForm(props) {
             <NumberField
               label='Dry'
               defaultValue={pickup?.weightDry}
-              name='Lbs Dry'
+              name='Dry'
               required
             />
           </li>
@@ -211,7 +227,7 @@ function PickupForm(props) {
             <NumberField
               label='Prepared'
               defaultValue={pickup?.weightPrepared}
-              name='Lbs Prepared'
+              name='Prepared'
               required
             />
           </li>
@@ -219,7 +235,7 @@ function PickupForm(props) {
             <NumberField
               label='Meat'
               defaultValue={pickup?.weightMeat}
-              name='Lbs Meat'
+              name='Meat'
               required
             />
           </li>
@@ -227,7 +243,7 @@ function PickupForm(props) {
             <NumberField
               label='Dairy'
               defaultValue={pickup?.weightDairy}
-              name='Lbs Dairy'
+              name='Dairy'
               required
             />
           </li>
@@ -235,7 +251,7 @@ function PickupForm(props) {
             <NumberField
               label='Bakery'
               defaultValue={pickup?.weightBakery}
-              name='Lbs Bakery'
+              name='Bakery'
               required
             />
           </li>
@@ -243,7 +259,7 @@ function PickupForm(props) {
             <NumberField
               label='Frozen'
               defaultValue={pickup?.weightFrozen}
-              name='Lbs Frozen'
+              name='Frozen'
               required
             />
           </li>
@@ -251,7 +267,7 @@ function PickupForm(props) {
             <NumberField
               label='Beverages'
               defaultValue={pickup?.weightBeverages}
-              name='Lbs Beverages'
+              name='Beverages'
               required
             />
           </li>
@@ -259,7 +275,7 @@ function PickupForm(props) {
             <NumberField
               label='Non-Food'
               defaultValue={pickup?.weightNonFood}
-              name='Lbs Non-Food'
+              name='Non-Food'
               required
             />
           </li>
@@ -270,17 +286,17 @@ function PickupForm(props) {
         <ul className={`${styles.formFieldList}`}>
           <li>
             <NumberField
-              label='Refrigerated Start'
+              label='Refridgerated Start'
               defaultValue={pickup?.refrigeratedTempStart}
-              name='Refrigerated Temp Start'
+              name='Refridgerated Start'
               required
             />
           </li>
           <li>
             <NumberField
-              label='Refrigerated End'
+              label='Refridgerated End'
               defaultValue={pickup?.refrigeratedTempEnd}
-              name='Refrigerated Temp End'
+              name='Refridgerated End'
               required
             />
           </li>
@@ -288,7 +304,7 @@ function PickupForm(props) {
             <NumberField
               label='Frozen Start'
               defaultValue={pickup?.frozenTempStart}
-              name='Frozen Temp Start'
+              name='Frozen Start'
               required
             />
           </li>
@@ -296,7 +312,7 @@ function PickupForm(props) {
             <NumberField
               label='Frozen End'
               defaultValue={pickup?.refrigeratedTempEnd}
-              name='Frozen Temp End'
+              name='Frozen End'
               required
             />
           </li>

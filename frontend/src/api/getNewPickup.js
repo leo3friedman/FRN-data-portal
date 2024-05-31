@@ -3,13 +3,16 @@ import { pickupApiErrors } from './enums.js'
 
 export default function useNewPickup() {
   const [pickup, setPickup] = useState({})
-  const [loading, setLoading] = useState(false)
+
+  // set loading default to true to prevent flash, TODO: is there a better way?
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(undefined)
 
   const fetchPickup = useCallback(async () => {
     try {
       setLoading(true)
-      const URL = `http://localhost:3000/pickups/new`
+      const expressUrl = import.meta.env.VITE_EXPRESS_URL
+      const URL = `${expressUrl}/api/pickups/new`
       const response = await fetch(URL, {
         method: 'GET',
         credentials: 'include',

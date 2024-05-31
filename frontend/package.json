@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev-mobile": "VITE_DEV_TYPE=mobile vite --host",
+    "dev-mobile": "VITE_MOCK_BACKEND=true vite --host",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",

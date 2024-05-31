@@ -22,7 +22,7 @@ export default function getPickups() {
     try {
       setLoading(true)
       const expressUrl = import.meta.env.VITE_EXPRESS_URL
-      const response = await fetch(`${expressUrl}/pickups`, {
+      const response = await fetch(`${expressUrl}/api/pickups`, {
         method: 'GET',
         credentials: 'include',
       })

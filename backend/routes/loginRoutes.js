@@ -16,35 +16,43 @@ const oauth2Client = new google.auth.OAuth2(
 )
 
 router.get('/googleauth', (req, res) => {
-  // Generate a secure random state value.
-  const state = crypto.randomBytes(32).toString('hex')
+  try {
+    // Generate a secure random state value.
+    const state = crypto.randomBytes(32).toString('hex')
 
-  // Store state in the session
-  req.session.state = state
+    // Store state in the session
+    req.session.state = state
 
-  const authorizationUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/userinfo.email'],
-    // Include the state parameter to reduce the risk of CSRF attacks.
-    state: state,
-    consent: 'prompt',
-  })
+    const authorizationUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://www.googleapis.com/auth/userinfo.email'],
+      // Include the state parameter to reduce the risk of CSRF attacks.
+      state: state,
+      consent: 'prompt',
+    })
 
-  res.redirect(authorizationUrl)
+    return res.redirect(authorizationUrl)
+  } catch (error) {
+    return res.status(500).json({ error: 'googleauth failed!' })
+  }
 })
 
 router.get('/oauth2callback', async (req, res) => {
-  let q = url.parse(req.url, true).query
+  try {
+    const q = url.parse(req.url, true).query
 
-  if (q.error) {
-    console.log('Error:' + q.error)
-  } else if (q.state !== req.session.state) {
-    console.log('State mismatch. Possible CSRF attack')
-    res.end('State mismatch. Possible CSRF attack')
-  } else {
-    let { tokens } = await oauth2Client.getToken(q.code)
+    if (q.error) {
+      return res.status(400).json({ error: 'Invalid query parameters' })
+    }
+
+    if (q.state !== req.session.state) {
+      return res
+        .status(403)
+        .json({ error: 'State mismatch. Possible CSRF attack' })
+    }
+
+    const { tokens } = await oauth2Client.getToken(q.code)
     const { refresh_token } = tokens
-
     res.cookie('token', refresh_token, {
       httpOnly: true,
       secure: true,
@@ -52,12 +60,21 @@ router.get('/oauth2callback', async (req, res) => {
     })
 
     res.redirect(process.env.CLIENT_URL)
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ error: 'oauth2callback failed!' })
   }
 })
 
 router.post('/logout', (req, res) => {
-  res.clearCookie('token')
-  return res.status(200).json({ message: 'Logout successful!' })
+  try {
+    // TODO: break google connection
+    res.clearCookie('token')
+    return res.status(200).json({ message: 'Logout successful!' })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ error: 'logout failed!' })
+  }
 })
 
 export async function isValidToken(refreshToken) {

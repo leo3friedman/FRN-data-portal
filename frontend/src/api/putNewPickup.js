@@ -10,7 +10,7 @@ export default function putNewPickup() {
     try {
       setLoading(true)
       const expressUrl = import.meta.env.VITE_EXPRESS_URL
-      const response = await fetch(`${expressUrl}/pickups/new`, {
+      const response = await fetch(`${expressUrl}/api/pickups/new`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

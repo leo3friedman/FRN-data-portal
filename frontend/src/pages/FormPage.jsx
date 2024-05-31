@@ -107,7 +107,6 @@ function NumberField(props) {
       inputProps={{
         type: 'number',
         min: '0',
-        max: '10000',
         defaultValue: defaultValue,
         required: required,
         name: name,

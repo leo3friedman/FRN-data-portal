@@ -26,9 +26,9 @@ app.use(cors(corsOptions))
 
 app.use(cookieParser())
 
-app.use('/', loginRoutes)
+app.use('/api/', loginRoutes)
 
-app.use('/', pickupRoutes)
+app.use('/api/', pickupRoutes)
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`)

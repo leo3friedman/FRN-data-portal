@@ -9,7 +9,8 @@ export default function LoginPage() {
   async function login() {
     try {
       setLoginLoading(true)
-      window.location.href = 'http://localhost:3000/googleauth'
+      const expressUrl = import.meta.env.VITE_EXPRESS_URL
+      window.location.href = `${expressUrl}/api/googleauth`
     } catch (error) {
       setLoginError(true)
     } finally {

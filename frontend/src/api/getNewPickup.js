@@ -12,7 +12,7 @@ export default function useNewPickup() {
     try {
       setLoading(true)
       const expressUrl = import.meta.env.VITE_EXPRESS_URL
-      const URL = `${expressUrl}/pickups/new`
+      const URL = `${expressUrl}/api/pickups/new`
       const response = await fetch(URL, {
         method: 'GET',
         credentials: 'include',

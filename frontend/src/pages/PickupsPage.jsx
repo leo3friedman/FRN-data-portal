@@ -62,7 +62,8 @@ export default function PickupsPage() {
 
   async function logout() {
     try {
-      const response = await fetch('http://localhost:3000/logout', {
+      const expressUrl = import.meta.env.VITE_EXPRESS_URL
+      const response = await fetch(`${expressUrl}/api/logout`, {
         method: 'POST',
         credentials: 'include',
       })

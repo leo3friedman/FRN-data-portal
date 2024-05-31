@@ -100,7 +100,7 @@ function Field(props) {
 }
 
 function NumberField(props) {
-  const { label, defaultValue, required, name } = props
+  const { label, defaultValue, required } = props
   return (
     <Field
       label={label}
@@ -109,14 +109,14 @@ function NumberField(props) {
         min: '0',
         defaultValue: defaultValue,
         required: required,
-        name: name,
+        name: label,
       }}
     />
   )
 }
 
 function DateField(props) {
-  const { label, defaultValue, required, name } = props
+  const { label, defaultValue, required } = props
   return (
     <Field
       label={label}
@@ -124,14 +124,14 @@ function DateField(props) {
         type: 'date',
         required: required,
         defaultValue: defaultValue,
-        name: name,
+        name: label,
       }}
     />
   )
 }
 
 function TextField(props) {
-  const { label, defaultValue, required, name } = props
+  const { label, defaultValue, required } = props
   return (
     <Field
       label={label}
@@ -139,9 +139,48 @@ function TextField(props) {
         type: 'text',
         required: required,
         defaultValue: defaultValue,
-        name: name,
+        name: label,
       }}
     />
+  )
+}
+
+function FormField(props) {
+  const { label, type, required, value } = props
+
+  if (type === 'Number') {
+    return (
+      <NumberField label={label} required={required} defaultValue={value} />
+    )
+  }
+
+  if (type === 'Select') {
+    return <TextField label={label} required={required} defaultValue={value} />
+  }
+
+  if (type === 'Date') {
+    return <DateField label={label} required={required} defaultValue={value} />
+  }
+
+  return <TextField label={label} required={required} defaultValue={value} />
+}
+
+function FormCategory(props) {
+  const { category, fields } = props
+  return (
+    <div className={styles.formCategory}>
+      <div className={styles.formCategoryHeader}>{category}</div>
+      <ul className={`${styles.formFieldList}`}>
+        {fields?.length &&
+          fields.map((field) => {
+            return (
+              <li>
+                <FormField {...field} />
+              </li>
+            )
+          })}
+      </ul>
+    </div>
   )
 }
 
@@ -156,6 +195,29 @@ function PickupForm(props) {
     pickupError,
   } = props
 
+  const formBlueprint = pickup.reduce((blueprint, fieldInfo) => {
+    const fieldCategory = fieldInfo?.['Form Category']
+    const categoryExists = blueprint.some(
+      (categoryInfo) => categoryInfo?.category === fieldCategory
+    )
+
+    if (!categoryExists) {
+      blueprint.push({ category: fieldCategory, fields: [] })
+    }
+
+    const blueprintCategoryObject = blueprint.find(
+      (categoryInfo) => categoryInfo?.category === fieldCategory
+    )
+
+    blueprintCategoryObject.fields.push({
+      label: fieldInfo?.['Form Label'],
+      type: fieldInfo?.['Form Type'],
+      required: fieldInfo?.['Required'] === 'TRUE',
+      value: fieldInfo?.['Value'],
+    })
+    return blueprint
+  }, [])
+
   if (pickupLoading) {
     return (
       <div className={styles.loadingCircleContainer}>
@@ -165,7 +227,6 @@ function PickupForm(props) {
   }
 
   if (pickupError) {
-    console.log(pickupError)
     return (
       <div className={styles.error}>
         Error getting pickups. <br /> <br /> Please click <a href=''>here</a> to
@@ -176,148 +237,14 @@ function PickupForm(props) {
 
   return (
     <form className={styles.pickupForm} onSubmit={onFormSubmit}>
-      <div className={styles.formCategory}>
-        <div className={styles.formCategoryHeader}>Vendor Information</div>
-        <ul className={`${styles.formFieldList}`}>
-          <li>
-            <TextField
-              label='Lead Initials'
-              defaultValue={pickup?.leadInitials}
-              name='Lead Initials'
-            />
-          </li>
-          <li>
-            <DateField
-              label='Pickup Date'
-              defaultValue={pickup?.pickupDate}
-              required
-              name='Pickup Date'
-            />
-          </li>
-          <li>
-            <TextField
-              label='Donor Agency'
-              defaultValue={pickup?.donorAgency}
-              required
-              name='Donor Agency'
-            />
-          </li>
-        </ul>
-      </div>
-      <div className={styles.formCategory}>
-        <div className={styles.formCategoryHeader}>Weights</div>
-        <ul className={`${styles.formFieldList}`}>
-          <li>
-            <NumberField
-              label='Produce'
-              defaultValue={pickup?.weightProduce}
-              name='Produce'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Dry'
-              defaultValue={pickup?.weightDry}
-              name='Dry'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Prepared'
-              defaultValue={pickup?.weightPrepared}
-              name='Prepared'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Meat'
-              defaultValue={pickup?.weightMeat}
-              name='Meat'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Dairy'
-              defaultValue={pickup?.weightDairy}
-              name='Dairy'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Bakery'
-              defaultValue={pickup?.weightBakery}
-              name='Bakery'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Frozen'
-              defaultValue={pickup?.weightFrozen}
-              name='Frozen'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Beverages'
-              defaultValue={pickup?.weightBeverages}
-              name='Beverages'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Non-Food'
-              defaultValue={pickup?.weightNonFood}
-              name='Non-Food'
-              required
-            />
-          </li>
-        </ul>
-      </div>
-      <div className={styles.formCategory}>
-        <div className={styles.formCategoryHeader}>Temperatures</div>
-        <ul className={`${styles.formFieldList}`}>
-          <li>
-            <NumberField
-              label='Refridgerated Start'
-              defaultValue={pickup?.refrigeratedTempStart}
-              name='Refridgerated Start'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Refridgerated End'
-              defaultValue={pickup?.refrigeratedTempEnd}
-              name='Refridgerated End'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Frozen Start'
-              defaultValue={pickup?.frozenTempStart}
-              name='Frozen Start'
-              required
-            />
-          </li>
-          <li>
-            <NumberField
-              label='Frozen End'
-              defaultValue={pickup?.refrigeratedTempEnd}
-              name='Frozen End'
-              required
-            />
-          </li>
-        </ul>
-      </div>
+      {formBlueprint?.length ? (
+        formBlueprint.map((category) => <FormCategory {...category} />)
+      ) : (
+        <div className={styles.error}>
+          Sorry, unable to build form. Please click <a href=''>here</a> to try
+          again.{' '}
+        </div>
+      )}
       <div>
         <Button size='small' type='submit' loading={submitLoading}>
           {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}

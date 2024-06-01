@@ -17,27 +17,6 @@ const auth = new GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 })
 
-const defaultPickup = {
-  id: -1,
-  pickupDate: toPickupDate(),
-  lastUpdatedDate: toPickupDate(),
-  donorAgency: '',
-  leadInitials: '',
-  weightBakery: 0,
-  weightBeverages: 0,
-  weightDairy: 0,
-  weightDry: 0,
-  weightFrozen: 0,
-  weightMeat: 0,
-  weightNonFood: 0,
-  weightPrepared: 0,
-  weightProduce: 0,
-  frozenTempStart: 0,
-  frozenTempEnd: 0,
-  refrigeratedTempStart: 0,
-  refrigeratedTempEnd: 0,
-}
-
 router.get('/pickups', async (req, res) => {
   // validate user is signed in
   const token = req?.cookies?.token
@@ -51,7 +30,7 @@ router.get('/pickups', async (req, res) => {
     const sheets = google.sheets({ version: 'v4', auth })
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
-      range: 'Sheet1!A1:R', // FIXME: allow for variable number of columns
+      range: 'Sheet1',
     })
     const pickupData = sheetsResponse.data.values
 
@@ -94,7 +73,7 @@ router.get('/pickups/new', async (req, res) => {
     const sheets = google.sheets({ version: 'v4', auth })
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
-      range: 'Form Specifier', // FIXME: allow for variable number of columns
+      range: 'Form Specifier',
     })
     const form_specifier_values = sheetsResponse.data.values
 
@@ -189,7 +168,7 @@ router.get('/pickups/:pickupId', async (req, res) => {
     const sheets = google.sheets({ version: 'v4', auth })
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
-      range: 'Sheet1!A1:R', // FIXME: allow for variable number of columns
+      range: 'Sheet1',
     })
     const pickupData = sheetsResponse.data.values
 
@@ -222,20 +201,20 @@ router.get('/pickups/:pickupId', async (req, res) => {
 })
 
 router.put('/pickups/new', async (req, res) => {
-  // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
-  }
-
-  const sheets = google.sheets({ version: 'v4', auth })
-  const sheetId = '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ'
   try {
+    // validate user is signed in
+    const token = req?.cookies?.token
+    const isValid = await isValidToken(token)
+    if (!isValid) {
+      return res.status(401).json({ error: 'Not signed in!' })
+    }
+
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetId = '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ'
     // fetch existing data to get column headers
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: 'Sheet1!A1:R', // FIXME: allow for variable number of columns
+      range: 'Sheet1',
     })
     const pickupData = sheetsResponse.data.values
 
@@ -278,39 +257,40 @@ router.put('/pickups/new', async (req, res) => {
 })
 
 router.put('/pickups/:pickupId', async (req, res) => {
-  // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
-  }
-
-  // TODO: validate request body format + move other validation to middleware?
-
-  const id = req?.params?.pickupId
-
-  if (!id) {
-    return res.status(403).json({ error: 'Request missing pickupId!' })
-  }
-
-  const updatedPickup = req?.body
-
-  // set last updated to now
-  updatedPickup['Last Updated Date'] = toPickupDate()
-
-  if (id !== updatedPickup['Id']) {
-    return res
-      .status(403)
-      .json({ error: 'Pickup id must match updated pickup data' })
-  }
-
-  const sheets = google.sheets({ version: 'v4', auth })
-  const sheetId = '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ'
   try {
+    // validate user is signed in
+    const token = req?.cookies?.token
+    const isValid = await isValidToken(token)
+    if (!isValid) {
+      return res.status(401).json({ error: 'Not signed in!' })
+    }
+
+    // TODO: validate request body format + move other validation to middleware?
+
+    const id = req?.params?.pickupId
+
+    if (!id) {
+      return res.status(403).json({ error: 'Request missing pickupId!' })
+    }
+
+    const updatedPickup = req?.body
+
+    // set last updated to now
+    updatedPickup['Last Updated Date'] = toPickupDate()
+
+    if (id !== updatedPickup['Id']) {
+      return res
+        .status(403)
+        .json({ error: 'Pickup id must match updated pickup data' })
+    }
+
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetId = '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ'
+
     // fetch existing data to get column headers
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: 'Sheet1!A1:R', // FIXME: allow for variable number of columns
+      range: 'Sheet1',
     })
     const pickupData = sheetsResponse.data.values
 
@@ -348,6 +328,64 @@ router.put('/pickups/:pickupId', async (req, res) => {
   } catch (error) {
     console.error('Error updating new pickup ', error)
     return res.status(500).json({ error: 'Error updating new Pickup' })
+  }
+})
+
+router.delete('/pickups/delete/:pickupId', async (req, res) => {
+  try {
+    const token = req?.cookies?.token
+    const isValid = await isValidToken(token)
+
+    if (!isValid) {
+      return res.status(401).json({ error: 'Not signed in!' })
+    }
+
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetId = '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ'
+    const sheetsResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: 'Sheet1',
+    })
+    const sheetValues = sheetsResponse.data.values
+    const columns = sheetValues[0]
+    const indexOfIdInRow = columns.indexOf('Id')
+    const idToDelete = req?.params?.pickupId
+    const indexToDelete = sheetValues.findIndex(
+      (row) => row[indexOfIdInRow] === idToDelete
+    )
+
+    if (indexToDelete === 0) {
+      return res.status(405).json({ error: 'Cannot delete row 0!' })
+    }
+
+    if (indexToDelete === -1) {
+      return res.status(404).json({ error: `Id ${idToDelete} not found!` })
+    }
+
+    // This id is the sheetId in url pattern: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit#gid=sheetId
+    const spreadsheetTabId = '0'
+
+    sheets.spreadsheets.batchUpdate({
+      spreadsheetId: sheetId,
+      resource: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: spreadsheetTabId,
+                dimension: 'ROWS',
+                startIndex: indexToDelete,
+                endIndex: indexToDelete + 1,
+              },
+            },
+          },
+        ],
+      },
+    })
+
+    return res.status(200).json({ message: 'Delete succeeded!' })
+  } catch (error) {
+    return res.status(500).json({ error })
   }
 })
 

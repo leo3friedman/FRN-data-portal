@@ -53,11 +53,6 @@
   font: var(--font-small);
 }
 
-.formFieldList li input {
-  padding: 0.25rem;
-  font-size: 1rem;
-}
-
 .fieldContainer {
   display: flex;
 }
@@ -69,6 +64,15 @@
 }
 
 .fieldContainer input {
+  padding: 0.25rem;
+  font-size: 1rem;
+  width: 8rem;
+}
+
+.fieldContainer select {
+  box-sizing: content-box;
+  padding: 0.25rem;
+  font-size: 1rem;
   width: 8rem;
 }
 

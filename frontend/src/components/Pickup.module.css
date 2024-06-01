@@ -17,12 +17,15 @@
 .pickupDate {
   width: calc(var(--pickup-width) * 0.25);
   overflow: hidden;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
 }
 
 .donorAgency {
   flex-grow: 1;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-wrap: nowrap;
 }
 
 .editIcon {

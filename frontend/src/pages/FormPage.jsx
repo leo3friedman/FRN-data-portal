@@ -10,6 +10,7 @@ import {
   getNewPickup,
   putPickup,
   putNewPickup,
+  useDeletePickup,
 } from '../api/index.js'
 import { pickupApiErrors } from '../api/enums.js'
 
@@ -30,6 +31,8 @@ export default function FormPage(props) {
   const { pickup, pickupLoading, pickupError, fetchPickup } = getPickupHook()
   const { submitLoading, submitError, submitPickup, submitSuccess } =
     submitPickupHook()
+  const { deleteLoading, deleteError, deletePickup, deleteSuccess } =
+    useDeletePickup(pickupId)
 
   useEffect(() => {
     fetchPickup()
@@ -38,16 +41,17 @@ export default function FormPage(props) {
   useEffect(() => {
     if (
       pickupError === pickupApiErrors.NOT_SIGNED_IN ||
-      submitError === pickupApiErrors.NOT_SIGNED_IN
+      submitError === pickupApiErrors.NOT_SIGNED_IN ||
+      deleteError === pickupApiErrors.NOT_SIGNED_IN
     ) {
       navigate('/login')
     }
 
-    if (submitSuccess) {
+    if (submitSuccess || deleteSuccess) {
       // TODO: add some feedback here (ex. confetti)
       navigate('/')
     }
-  }, [pickupError, submitError, submitSuccess])
+  }, [pickupError, submitError, submitSuccess, deleteSuccess, deleteError])
 
   async function onFormSubmit(event) {
     event.preventDefault()
@@ -61,6 +65,11 @@ export default function FormPage(props) {
 
     if (!isNewPickup) formData['Id'] = pickupId
     submitPickup(formData)
+  }
+
+  async function handleDelete(event) {
+    event.preventDefault()
+    deletePickup(pickupId)
   }
 
   return (
@@ -83,6 +92,9 @@ export default function FormPage(props) {
         isNewPickup={isNewPickup}
         submitLoading={submitLoading}
         submitError={submitError}
+        deleteLoading={deleteLoading}
+        deleteError={deleteError}
+        handleDelete={handleDelete}
       />
     </PageLayout>
   )
@@ -218,6 +230,9 @@ function PickupForm(props) {
     submitError,
     pickupLoading,
     pickupError,
+    deleteLoading,
+    deleteError,
+    handleDelete,
   } = props
 
   const formBlueprint = pickup.reduce((blueprint, fieldInfo) => {
@@ -274,12 +289,31 @@ function PickupForm(props) {
         </div>
       )}
       <div>
-        <Button size='small' type='submit' loading={submitLoading}>
-          {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
-        </Button>
+        <div className={styles.submitContainer}>
+          <Button size='small' type='submit' loading={submitLoading}>
+            {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
+          </Button>
+          {!isNewPickup && (
+            <div>
+              <Button
+                size='small'
+                onClick={handleDelete}
+                loading={deleteLoading}>
+                Delete Pickup
+              </Button>
+            </div>
+          )}
+        </div>
+
         {submitError && !submitLoading && (
           <div className={styles.error}>
             Error submitting pickup. Please try again later.
+          </div>
+        )}
+
+        {deleteError && !deleteLoading && !isNewPickup && (
+          <div className={styles.error}>
+            Error deleting pickup. Please try again later.
           </div>
         )}
       </div>

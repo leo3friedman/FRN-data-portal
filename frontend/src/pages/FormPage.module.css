@@ -76,6 +76,11 @@
   width: 8rem;
 }
 
+.submitContainer {
+  display: flex;
+  gap: 3rem;
+}
+
 .error {
   color: red;
   margin-top: 1rem;

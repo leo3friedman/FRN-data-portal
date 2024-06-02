@@ -10,7 +10,8 @@ dotenv.config()
 
 const router = express.Router()
 
-router.use(express.json()) // Ensure the body is parsed
+// ensure the body is parsed
+router.use(express.json())
 
 const auth = new GoogleAuth({
   credentials: credentials,
@@ -18,15 +19,15 @@ const auth = new GoogleAuth({
 })
 
 router.get('/pickups', async (req, res) => {
-  // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
-  }
-
-  // GET spreadsheet via Google API
   try {
+    // validate user is signed in
+    const token = req?.cookies?.token
+    const isValid = await isValidToken(token)
+    if (!isValid) {
+      return res.status(401).json({ error: 'Not signed in!' })
+    }
+
+    // GET spreadsheet via Google API
     const sheets = google.sheets({ version: 'v4', auth })
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
@@ -62,14 +63,15 @@ router.get('/pickups', async (req, res) => {
 })
 
 router.get('/pickups/new', async (req, res) => {
-  // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
-  }
-  // GET the column names and info from Form Specifier sheet
   try {
+    // validate user is signed in
+    const token = req?.cookies?.token
+    const isValid = await isValidToken(token)
+    if (!isValid) {
+      return res.status(401).json({ error: 'Not signed in!' })
+    }
+
+    // GET the column names and info from Form Specifier sheet
     const sheets = google.sheets({ version: 'v4', auth })
     const sheetsResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
@@ -108,29 +110,42 @@ router.get('/pickups/new', async (req, res) => {
 })
 
 router.get('/pickups/:pickupId', async (req, res) => {
-  // validate user is signed in
-  const token = req?.cookies?.token
-  const isValid = await isValidToken(token)
-  if (!isValid) {
-    return res.status(401).json({ error: 'Not signed in!' })
-  }
-  const id = req?.params?.pickupId
-
-  if (!id) {
-    return res.status(403).json({ error: 'Request missing pickupId!' })
-  }
-
-  const pickup_list = []
-  // GET Form Specifier Values
   try {
-    const sheets = google.sheets({ version: 'v4', auth })
-    const sheetsResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
-      range: 'Form Specifier',
-    })
-    const form_specifier_values = sheetsResponse.data.values
-    const form_keys = form_specifier_values[0]
+    /**
+     * validate user is signed in
+     */
 
+    const token = req?.cookies?.token
+    const isValid = await isValidToken(token)
+
+    if (!isValid) {
+      return res.status(401).json({ error: 'Not signed in!' })
+    }
+
+    const id = req?.params?.pickupId
+
+    if (!id) {
+      return res.status(403).json({ error: 'Request missing pickupId!' })
+    }
+
+    /**
+     * get Form Specifier and pickup data (Sheet1) values
+     */
+
+    const sheets = google.sheets({ version: 'v4', auth })
+    const sheetsResponse = await sheets.spreadsheets.values.batchGet({
+      spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
+      ranges: ['Form Specifier', 'Sheet1'],
+    })
+    const [formSpecifierData, pickupData] = sheetsResponse.data.valueRanges
+    const form_specifier_values = formSpecifierData.values
+    const pickupValues = pickupData.values
+
+    /**
+     * parse Form Specifier and pickup values into json
+     */
+
+    const form_keys = form_specifier_values[0]
     const form_specifier_json = form_specifier_values.slice(1).map((row) => {
       const column_object = {}
       form_keys.forEach((key, index) => {
@@ -139,6 +154,20 @@ router.get('/pickups/:pickupId', async (req, res) => {
       return column_object
     })
 
+    const pickupDataColumnHeaders = pickupValues[0]
+    const pickupDataJsons = pickupValues.slice(1).map((pickup) => {
+      const pickupJson = {}
+      pickupDataColumnHeaders.forEach((header, index) => {
+        pickupJson[header] = pickup[index].trim()
+      })
+      return pickupJson
+    })
+
+    /**
+     * populate return object (pickup_list) with Form Specifier values
+     */
+
+    const pickup_list = []
     const return_format = form_keys
     return_format.push('Value')
     form_specifier_json.forEach((row) => {
@@ -159,33 +188,15 @@ router.get('/pickups/:pickupId', async (req, res) => {
       })
       pickup_list.push(pickup_object)
     })
-  } catch (error) {
-    console.error('error reading form specifier: ', error)
-    return res.status(500).json({ error: 'Error reading form specifier' })
-  }
-  // GET the actual value from sheet1
-  try {
-    const sheets = google.sheets({ version: 'v4', auth })
-    const sheetsResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId: '1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ',
-      range: 'Sheet1',
-    })
-    const pickupData = sheetsResponse.data.values
 
-    // Grab column headers from data and find pickup where ids match
-    const columnHeaders = pickupData[0]
-    const pickupDataJsons = pickupData.slice(1).map((pickup) => {
-      const pickupJson = {}
-      columnHeaders.forEach((header, index) => {
-        pickupJson[header] = pickup[index].trim()
-      })
-      return pickupJson
-    })
+    /**
+     * populate return object (pickup_list) with pickup values
+     */
 
+    // find pickup with matching id to query parameter
     const pickup = pickupDataJsons.find((pickup) => pickup['Id'] === id)
 
     if (!pickup) {
-      console.error('Pickup Not Found!')
       return res.status(404).json({ error: 'Pickup Not Found!' })
     }
 
@@ -193,7 +204,7 @@ router.get('/pickups/:pickupId', async (req, res) => {
       row['Value'] = pickup[row['Form Label'].trim()]
     })
 
-    res.json(pickup_list)
+    res.status(200).json(pickup_list)
   } catch (error) {
     console.error('error reading sheet1: ', error)
     return res.status(500).json({ error: 'Error reading sheet1' })
@@ -316,7 +327,7 @@ router.put('/pickups/:pickupId', async (req, res) => {
     }
 
     // update the new range
-    const response = await sheets.spreadsheets.values.update({
+    await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: rangeToUpdate,
       valueInputOption: 'USER_ENTERED',
@@ -365,7 +376,7 @@ router.delete('/pickups/delete/:pickupId', async (req, res) => {
     // This id is the sheetId in url pattern: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit#gid=sheetId
     const spreadsheetTabId = '0'
 
-    sheets.spreadsheets.batchUpdate({
+    await sheets.spreadsheets.batchUpdate({
       spreadsheetId: sheetId,
       resource: {
         requests: [

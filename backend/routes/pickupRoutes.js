@@ -214,11 +214,11 @@ router.get("/pickups/:pickupId", async (req, res) => {
 router.put("/pickups/new", async (req, res) => {
   try {
     // validate user is signed in
-    // const token = req?.cookies?.token
-    // const isValid = await isValidToken(token)
-    // if (!isValid) {
-    //   return res.status(401).json({ error: "Not signed in!" })
-    // }
+    const token = req?.cookies?.token
+    const isValid = await isValidToken(token)
+    if (!isValid) {
+      return res.status(401).json({ error: "Not signed in!" })
+    }
 
     /**
      * First check our Form Specifier to see if form labels have changed
@@ -236,7 +236,8 @@ router.put("/pickups/new", async (req, res) => {
 
     const sheet1ColumnHeaders = pickupValues[0]
 
-    // Get form labels from form specifier
+    /* Get form labels from form specifier sheet
+     */
     const formLabels = form_specifier_values
       .slice(1)
       .map((subList) => subList[1])
@@ -255,7 +256,9 @@ router.put("/pickups/new", async (req, res) => {
       !formLabels.every((item) => newPickupFormLabels.includes(item))
     ) {
       console.log("Invalid Pickup Format")
-      return res.status(500).json({ error: "Error adding new Pickup" })
+      return res
+        .status(500)
+        .json({ error: "Error adding new Pickup - Invalid Pickup Format" })
     } else {
       // Create pickupJson for easier iteration
       const pickupJson = {}
@@ -299,7 +302,9 @@ router.put("/pickups/new", async (req, res) => {
       // Add a new row to the sheet
       const new_row = []
 
-      const updatedColumnHeaders = sheet1ColumnHeaders.concat([...pickupLabelSet])
+      const updatedColumnHeaders = sheet1ColumnHeaders.concat([
+        ...pickupLabelSet,
+      ])
       updatedColumnHeaders.forEach((header) => {
         new_row.push(pickupJson[header])
       })
@@ -336,7 +341,6 @@ router.put("/pickups/:pickupId", async (req, res) => {
     }
 
     // TODO: validate request body format + move other validation to middleware?
-
     const id = req?.params?.pickupId
 
     if (!id) {
@@ -345,56 +349,125 @@ router.put("/pickups/:pickupId", async (req, res) => {
 
     const updatedPickup = req?.body
 
-    // set last updated to now
-    updatedPickup["Last Updated Date"] = toPickupDate()
-
-    if (id !== updatedPickup["Id"]) {
-      return res
-        .status(403)
-        .json({ error: "Pickup id must match updated pickup data" })
-    }
-
-    const sheets = google.sheets({ version: "v4", auth })
+    /**
+     * First check our Form Specifier to see if form labels have changed
+     */
     const sheetId = "1_pLDCNqM0KMUTpyiM1akEAIGLvNyswVBSvuE3MxKMgQ"
 
-    // fetch existing data to get column headers
-    const sheetsResponse = await sheets.spreadsheets.values.get({
+    const sheets = google.sheets({ version: "v4", auth })
+    const sheetsResponse = await sheets.spreadsheets.values.batchGet({
       spreadsheetId: sheetId,
-      range: "Sheet1",
+      ranges: ["Form Specifier", "Sheet1"],
     })
-    const pickupData = sheetsResponse.data.values
+    const [formSpecifierData, pickupData] = sheetsResponse.data.valueRanges
+    const form_specifier_values = formSpecifierData.values
+    const pickupValues = pickupData.values
 
-    const columnHeaders = pickupData[0]
+    const sheet1ColumnHeaders = pickupValues[0]
 
-    // parse pickup data for where the id matches and define range to update
-    const indexOfRowToUpdate = pickupData.findIndex(
-      (subArray) => subArray[0] === id
+    /* Get form labels from form specifier sheet
+     */
+    const formLabels = form_specifier_values
+      .slice(1)
+      .map((subList) => subList[1])
+
+    // Find form labels of updated pickup
+    const updatedPickupFormLabels = updatedPickup.map(
+      ({ "Form Label": label }) => label
     )
-    const rangeToUpdate = `Sheet1!A${parseInt(indexOfRowToUpdate) + 1}:R`
 
-    // The values to insert into new range
-    const new_row = []
+    // Check if two labels are the same. if so continue. Else return error
+    if (
+      updatedPickupFormLabels.length !== formLabels.length ||
+      !updatedPickupFormLabels.every((item) => formLabels.includes(item)) ||
+      !formLabels.every((item) => updatedPickupFormLabels.includes(item))
+    ) {
+      console.log("Invalid Pickup Format")
+      return res
+        .status(500)
+        .json({ error: "Error adding new Pickup - Invalid Pickup Format" })
+    } else {
+      // Create pickupJson for easier iteration
+      const pickupJson = {}
+      updatedPickup.forEach((obj) => {
+        pickupJson[obj["Form Label"]] = obj["Value"]
+      })
 
-    columnHeaders.forEach((header) => {
-      new_row.push(updatedPickup?.[header])
-    })
+      // set last updated to now
+      pickupJson["Last Updated Date"] = toPickupDate()
+      updatedPickupFormLabels.push("Last Updated Date")
 
-    const values = [new_row]
+      // set Id
+      pickupJson["Id"] = id
+      updatedPickupFormLabels.push("Id")
 
-    const resource = {
-      values,
+      // Mark deprecated columns
+      const pickupLabelSet = new Set(updatedPickupFormLabels)
+      sheet1ColumnHeaders.forEach((header, index) => {
+        if (!pickupLabelSet.has(header)) {
+          pickupJson[header] = ""
+          pickupLabelSet.delete(header)
+        } else {
+          pickupLabelSet.delete(header)
+        }
+      })
+
+      // Add any new column headers
+      if (pickupLabelSet.size > 0) {
+        const newHeaders = sheet1ColumnHeaders.concat([...pickupLabelSet])
+        const values = [newHeaders]
+        const resource = {
+          values,
+        }
+        const headerUpdateResponse = await sheets.spreadsheets.values.update({
+          spreadsheetId: sheetId,
+          range: "Sheet1!A1",
+          valueInputOption: "USER_ENTERED",
+          resource,
+        })
+      }
+
+      // OLD CODE: I think this is deprecated?
+      // if (id !== updatedPickup["Id"]) {
+      //   return res
+      //     .status(403)
+      //     .json({ error: "Pickup id must match updated pickup data" })
+      // }
+
+      // parse pickup data for where the id matches and define range to update
+      const indexOfRowToUpdate = pickupValues.findIndex(
+        (subArray) => subArray[0] === id
+      )
+      const rangeToUpdate = `Sheet1!A${parseInt(indexOfRowToUpdate) + 1}`
+
+      // The values to insert into new range
+      const new_row = []
+
+      const updatedColumnHeaders = sheet1ColumnHeaders.concat([
+        ...pickupLabelSet,
+      ])
+
+      updatedColumnHeaders.forEach((header) => {
+        new_row.push(pickupJson[header])
+      })
+
+      const values = [new_row]
+
+      const resource = {
+        values,
+      }
+
+      // update the values at the specified range
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: sheetId,
+        range: rangeToUpdate,
+        valueInputOption: "USER_ENTERED",
+        resource,
+      })
+
+      console.log(`Updated row ${rangeToUpdate}`)
+      res.status(200).send("Row updated successfully")
     }
-
-    // update the new range
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: sheetId,
-      range: rangeToUpdate,
-      valueInputOption: "USER_ENTERED",
-      resource,
-    })
-
-    console.log("Row updated")
-    res.status(200).send("Row updated successfully")
   } catch (error) {
     console.error("Error updating new pickup ", error)
     return res.status(500).json({ error: "Error updating new Pickup" })

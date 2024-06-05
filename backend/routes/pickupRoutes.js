@@ -158,7 +158,7 @@ router.get('/pickups/:pickupId', async (req, res) => {
     const pickupDataJsons = pickupValues.slice(1).map((pickup) => {
       const pickupJson = {}
       pickupDataColumnHeaders.forEach((header, index) => {
-        pickupJson[header] = pickup[index].trim()
+        pickupJson[header] = pickup[index]
       })
       return pickupJson
     })
@@ -201,7 +201,7 @@ router.get('/pickups/:pickupId', async (req, res) => {
     }
 
     pickup_list.forEach((row) => {
-      row['Value'] = pickup[row['Form Label'].trim()]
+      row['Value'] = pickup[row['Form Label']]
     })
 
     res.status(200).json(pickup_list)

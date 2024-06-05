@@ -8,13 +8,16 @@ export default function putNewPickup() {
 
   const submitPickup = useCallback(async (pickup) => {
     try {
+      const pickupList = Object.entries(pickup).map(([key, value]) => {
+        return { "Form Label": key, "Value": value };
+      })
       setLoading(true)
       const expressUrl = import.meta.env.VITE_EXPRESS_URL
       const response = await fetch(`${expressUrl}/api/pickups/new`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pickup),
+        body: JSON.stringify(pickupList),
       })
 
       if (!response.ok) {

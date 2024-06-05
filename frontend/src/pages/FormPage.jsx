@@ -73,7 +73,7 @@ export default function FormPage(props) {
   }
 
   return (
-    <PageLayout>
+    <PageLayout showLogout>
       <div className={styles.stickyContent}>
         <nav className={styles.returnToPickups} onClick={() => navigate('/')}>
           <img src={arrowLeftIcon} />
@@ -290,7 +290,16 @@ function PickupForm(props) {
       )}
       <div>
         <div className={styles.submitContainer}>
-          <Button size='small' type='submit' loading={submitLoading}>
+          <Button
+            size='small'
+            type='submit'
+            loading={submitLoading}
+            buttonProps={{
+              style: {
+                color: 'var(--secondary-white)',
+                backgroundColor: 'var(--primary-green)',
+              },
+            }}>
             {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
           </Button>
           {!isNewPickup && (
@@ -298,7 +307,13 @@ function PickupForm(props) {
               <Button
                 size='small'
                 onClick={handleDelete}
-                loading={deleteLoading}>
+                loading={deleteLoading}
+                buttonProps={{
+                  style: {
+                    color: 'var(--secondary-white)',
+                    backgroundColor: 'var(--caution-red)',
+                  },
+                }}>
                 Delete Pickup
               </Button>
             </div>

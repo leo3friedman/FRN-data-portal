@@ -8,6 +8,7 @@
   position: absolute;
   top: 1rem;
   height: 128px;
+  z-index: 20;
 }
 
 .loginButton {

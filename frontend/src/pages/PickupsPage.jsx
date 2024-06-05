@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Button, LoadingCircle } from '../components/index'
 import { Pickup, PageLayout } from '../components/index.js'
 import searchIcon from '../assets/searchIcon.svg'
-import logOutIcon from '../assets/logOutIcon.svg'
 import styles from './PickupsPage.module.css'
 import { pickupApiErrors } from '../api/enums.js'
 import { getPickups } from '../api/index.js'
@@ -60,33 +59,10 @@ export default function PickupsPage() {
     }
   }, [pickupsError])
 
-  async function logout() {
-    try {
-      const expressUrl = import.meta.env.VITE_EXPRESS_URL
-      const response = await fetch(`${expressUrl}/api/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      })
-      if (response.ok) {
-        navigate('/login')
-      } else {
-        throw new Error()
-      }
-    } catch (error) {
-      console.log(error)
-      alert(
-        'Sorry, we are having some trouble logging you out. Please try again later.'
-      )
-    }
-  }
 
   return (
-    <PageLayout>
+    <PageLayout showLogout={true}>
       <div className={styles.stickyContent}>
-        <nav className={styles.logout} onClick={logout}>
-          <img src={logOutIcon} />
-          Logout
-        </nav>
         <header className={styles.pageHeader}>
           Pickups
           <Button size='small' onClick={() => navigate('/pickups/new')}>

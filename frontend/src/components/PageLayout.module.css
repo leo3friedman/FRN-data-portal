@@ -15,9 +15,31 @@
 
 .pageHeader {
   height: var(--header-height);
+  position: fixed;
   width: 100%;
   background-color: var(--primary-green);
   border-bottom: solid var(--header-border-width) var(--primary-lime-green);
+  z-index: 10;
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 2rem;
+  justify-content: flex-end;
+  color: var(--secondary-white);
+  padding-right: 3rem; /* FIXME: not perfect alignment */
+}
+
+.logout .logoutIcon {
+  filter: invert(100%) sepia(3%) saturate(2226%) hue-rotate(152deg)
+    brightness(126%) contrast(112%);
+}
+
+.logout:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .pageContent {

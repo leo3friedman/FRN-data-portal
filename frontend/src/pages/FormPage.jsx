@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, PageLayout, LoadingCircle } from '../components/index.js'
 import arrowLeftIcon from '../assets/arrowLeftIcon.svg'
+import warningIcon from '../assets/warningIcon.svg'
 import styles from './FormPage.module.css'
 import { useParams } from 'react-router-dom'
 
@@ -235,6 +236,8 @@ function PickupForm(props) {
     handleDelete,
   } = props
 
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   const formBlueprint = pickup.reduce((blueprint, fieldInfo) => {
     const fieldCategory = fieldInfo?.['Form Category']
     const categoryExists = blueprint.some(
@@ -306,7 +309,10 @@ function PickupForm(props) {
             <div>
               <Button
                 size='small'
-                onClick={handleDelete}
+                onClick={(event) => {
+                  event.preventDefault()
+                  setIsModalOpen(true)
+                }}
                 loading={deleteLoading}
                 buttonProps={{
                   style: {
@@ -331,7 +337,52 @@ function PickupForm(props) {
             Error deleting pickup. Please try again later.
           </div>
         )}
+
+        <DeleteModal
+          isOpen={isModalOpen}
+          onClose={(event) => {
+            event.preventDefault()
+            setIsModalOpen(false)
+          }}
+          deleteLoading={deleteLoading}
+          onDelete={handleDelete}
+        />
       </div>
     </form>
+  )
+}
+
+function DeleteModal({ onDelete, isOpen, onClose, deleteLoading }) {
+  // TODO: make more accessible (listen for esc keypress, add x icon in corner)
+
+  return (
+    <>
+      {isOpen && (
+        <div className={styles.modalCanvas}>
+          <div className={styles.modalWindow}>
+            <div className={styles.modalContent}>
+              <img src={warningIcon} className={styles.modalIcon}></img>
+              <h2 className={styles.modalTitle}>
+                Are you sure you want to delete this pickup?
+              </h2>
+              <div className={styles.modalSubtitle}>
+                You will not be able to undo this decision
+              </div>
+              <div className={styles.modalActions}>
+                <Button
+                  size={'small'}
+                  onClick={onDelete}
+                  loading={deleteLoading}>
+                  Yes, delete Pickup
+                </Button>
+                <Button size={'small'} onClick={onClose}>
+                  No
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

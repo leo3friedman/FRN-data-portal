@@ -371,6 +371,9 @@ router.put("/pickups/:pickupId", async (req, res) => {
       .slice(1)
       .map((subList) => subList[1])
 
+    // Since this is an update pickupId, we should expect an Id field as well
+    formLabels.push('Id')
+
     // Find form labels of updated pickup
     const updatedPickupFormLabels = updatedPickup.map(
       ({ "Form Label": label }) => label
@@ -382,6 +385,7 @@ router.put("/pickups/:pickupId", async (req, res) => {
       !updatedPickupFormLabels.every((item) => formLabels.includes(item)) ||
       !formLabels.every((item) => updatedPickupFormLabels.includes(item))
     ) {
+      console.log(updatedPickup)
       console.log("Invalid Pickup Format")
       return res
         .status(500)
@@ -396,10 +400,6 @@ router.put("/pickups/:pickupId", async (req, res) => {
       // set last updated to now
       pickupJson["Last Updated Date"] = toPickupDate()
       updatedPickupFormLabels.push("Last Updated Date")
-
-      // set Id
-      pickupJson["Id"] = id
-      updatedPickupFormLabels.push("Id")
 
       // Mark deprecated columns
       const pickupLabelSet = new Set(updatedPickupFormLabels)

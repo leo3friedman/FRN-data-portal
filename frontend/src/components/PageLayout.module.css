@@ -1,8 +1,42 @@
 .page {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+}
+
+.pageContentContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.pageHeader {
+  height: var(--header-height);
+  width: 100%;
+  background-color: var(--primary-green);
+  border-bottom: solid var(--header-border-width) var(--primary-lime-green);
 }
 
 .pageContent {
   width: calc(var(--pickup-width) + 1rem);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.pageFooter {
+  position: relative;
+  height: 3rem;
+  width: 100%;
+  background-color: var(--primary-green);
+  border-top: solid 0.5rem var(--primary-lime-green);
+}
+
+.pageFooter .groceryBag {
+  position: absolute;
+  bottom: 0;
+  height: 128px;
 }

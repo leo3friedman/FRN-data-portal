@@ -1,5 +1,6 @@
 :root {
   --primary-green: #09a952;
+  --primary-lime-green: #7ed959;
   --primary-navy-blue: #0a456e;
   --primary-light-blue: #99d1e2;
   --primary-yellow: #ffab2b;
@@ -10,6 +11,11 @@
   --font-small: 0.75rem 'Montserrat Variable', Arial, sans-serif;
   --pickup-width: 18.5rem;
   --page-padding-top: 4rem;
+  --header-height: 5rem;
+  --header-border-width: 0.5rem;
+  --total-header-height: calc(
+    var(--header-height) + var(--header-border-width)
+  );
 }
 body {
   margin: 0;

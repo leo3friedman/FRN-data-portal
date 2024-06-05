@@ -1,5 +1,7 @@
 import { Button, PageLayout } from '../components/index.js'
 import styles from './LoginPage.module.css'
+import dancingFruits from '../assets/dancingFruits.png'
+import googleLogo from '../assets/googleLogo.png'
 
 export default function LoginPage() {
   const url = new URL(window.location.href)
@@ -13,13 +15,16 @@ export default function LoginPage() {
 
   return (
     <PageLayout>
-      <header className={styles.pageTitle}>
-        Food Recovery Network Data Portal
-      </header>
+      <img src={dancingFruits} className={styles.dancingFruits}></img>
       <div className={styles.login}>
-        <div>Please sign in to continue</div>
-        <Button onClick={login}>Sign in with Google</Button>
-        {error && <div className={styles.error}>{error}</div>}
+        <div className={styles.loginContent}>
+          <h1 className={styles.loginHeader}>Food Recovery Network</h1>
+          <button className={styles.loginButton} onClick={login}>
+            <img className={styles.googleLogo} src={googleLogo}></img>Sign in
+            with Google
+          </button>
+          {error && <div className={styles.error}>{error}</div>}
+        </div>
       </div>
     </PageLayout>
   )

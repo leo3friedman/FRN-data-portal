@@ -22,14 +22,13 @@
   align-items: center;
   border-radius: 0.5rem;
 }
+
 .loginButton .googleLogo {
   width: 1rem;
 }
 
 .loginHeader {
-  font: var(--font-header);
-  text-align: center;
-  margin: 0;
+  height: 3.5rem;
 }
 
 .loginContent {

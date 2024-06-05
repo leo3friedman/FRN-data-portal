@@ -3,6 +3,6 @@
   "name": "Food Recovery Network Data Portal",
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "theme_color": "#09a952",
+  "background_color": "#09a952"
 }

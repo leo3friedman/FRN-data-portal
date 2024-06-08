@@ -120,7 +120,7 @@ function NumberField(props) {
         type: 'number',
         min: '0',
         step: '.01',
-        defaultValue: defaultValue,
+        defaultValue: defaultValue ?? '0',
         required: required,
         name: label,
       }}
@@ -151,7 +151,7 @@ function TextField(props) {
       inputProps={{
         type: 'text',
         required: required,
-        defaultValue: defaultValue,
+        defaultValue: defaultValue ?? '',
         name: label,
       }}
     />

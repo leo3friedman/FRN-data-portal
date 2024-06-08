@@ -4,12 +4,13 @@ import { Button, LoadingCircle } from '../components/index'
 import { Pickup, PageLayout } from '../components/index.js'
 import searchIcon from '../assets/searchIcon.svg'
 import styles from './PickupsPage.module.css'
-import { pickupApiErrors } from '../api/enums.js'
-import { getPickups } from '../api/index.js'
+import { pickupApiErrors } from '../hooks/enums.js'
+import { useGetPickups } from '../hooks/index.js'
 
 export default function PickupsPage() {
   const navigate = useNavigate()
-  const { pickups, pickupsLoading, fetchPickups, pickupsError } = getPickups()
+  const { pickups, pickupsLoading, fetchPickups, pickupsError } =
+    useGetPickups()
   const [filteredPickups, setFilteredPickups] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -58,7 +59,6 @@ export default function PickupsPage() {
       navigate('/login')
     }
   }, [pickupsError])
-
 
   return (
     <PageLayout showLogout={true}>

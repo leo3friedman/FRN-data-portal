@@ -7,25 +7,25 @@ import styles from './FormPage.module.css'
 import { useParams } from 'react-router-dom'
 
 import {
-  getPickup,
-  getNewPickup,
-  putPickup,
-  putNewPickup,
+  useGetPickup,
+  useGetNewPickup,
+  usePutPickup,
+  usePutNewPickup,
   useDeletePickup,
-} from '../api/index.js'
-import { pickupApiErrors } from '../api/enums.js'
+} from '../hooks/index.js'
+import { pickupApiErrors } from '../hooks/enums.js'
 
 export default function FormPage(props) {
   const { isNewPickup } = props
   const { pickupId } = useParams()
 
   const getPickupHook = isNewPickup
-    ? () => getNewPickup()
-    : () => getPickup(pickupId)
+    ? () => useGetNewPickup()
+    : () => useGetPickup(pickupId)
 
   const submitPickupHook = isNewPickup
-    ? () => putNewPickup()
-    : () => putPickup(pickupId)
+    ? () => usePutNewPickup()
+    : () => usePutPickup(pickupId)
 
   const navigate = useNavigate()
 
@@ -171,7 +171,7 @@ function SelectField(props) {
           Select One
         </option>
         {selectOptions?.length &&
-          selectOptions?.map((option) => <option>{option}</option>)}
+          selectOptions?.map((option) => <option key={option}>{option}</option>)}
       </select>
     </div>
   )
@@ -213,7 +213,7 @@ function FormCategory(props) {
         {fields?.length &&
           fields.map((field) => {
             return (
-              <li>
+              <li key={field?.label}>
                 <FormField {...field} />
               </li>
             )
@@ -285,7 +285,7 @@ function PickupForm(props) {
   return (
     <form className={styles.pickupForm} onSubmit={onFormSubmit}>
       {formBlueprint?.length ? (
-        formBlueprint.map((category) => <FormCategory {...category} />)
+        formBlueprint.map((category, index) => <FormCategory key={index} {...category} />)
       ) : (
         <div className={styles.error}>
           Sorry, unable to build form. Please click <a href=''>here</a> to try

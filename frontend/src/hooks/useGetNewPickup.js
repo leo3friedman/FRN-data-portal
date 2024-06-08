@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { pickupApiErrors } from './enums.js'
 
-export default function getNewPickup() {
+export function useGetNewPickup() {
   const [pickup, setPickup] = useState([])
 
   // set loading default to true to prevent flash, TODO: is there a better way?

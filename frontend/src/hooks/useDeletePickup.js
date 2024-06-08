@@ -13,7 +13,7 @@ import { pickupApiErrors } from './enums.js'
  * @param {String} pickupId
  * @returns {DeleteStatus}
  */
-export default function useDeletePickup(pickupId) {
+export function useDeletePickup(pickupId) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(undefined)
   const [success, setSuccess] = useState(false)

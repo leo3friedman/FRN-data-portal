@@ -25,7 +25,7 @@ export default function useDeletePickup(pickupId) {
       setLoading(false)
       setSuccess(true)
     }, mockLoadingTime)
-  })
+  }, [])
 
   const realDelete = useCallback(async () => {
     try {
@@ -50,7 +50,7 @@ export default function useDeletePickup(pickupId) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [pickupId])
 
   return {
     deleteSuccess: success,

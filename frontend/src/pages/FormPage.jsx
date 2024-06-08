@@ -119,6 +119,7 @@ function NumberField(props) {
       inputProps={{
         type: 'number',
         min: '0',
+        step: '.01',
         defaultValue: defaultValue,
         required: required,
         name: label,

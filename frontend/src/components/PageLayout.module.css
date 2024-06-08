@@ -22,24 +22,28 @@
   z-index: 10;
 }
 
-.logout {
+.headerNav {
+  padding: 2rem 3rem 0rem 3rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.headerNav button {
+  all: unset;
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding-top: 2rem;
-  justify-content: flex-end;
   color: var(--secondary-white);
-  padding-right: 3rem; /* FIXME: not perfect alignment */
 }
 
-.logout .logoutIcon {
-  filter: invert(100%) sepia(3%) saturate(2226%) hue-rotate(152deg)
-    brightness(126%) contrast(112%);
-}
-
-.logout:hover {
+.headerNav button:hover {
   cursor: pointer;
   text-decoration: underline;
+}
+
+.headerNav button img {
+  filter: invert(100%) sepia(3%) saturate(2226%) hue-rotate(152deg)
+    brightness(126%) contrast(112%);
 }
 
 .pageContent {

@@ -1,4 +1,4 @@
-import { Button, PageLayout } from '../components/index.js'
+import { PageLayout } from '../components/index.js'
 import styles from './LoginPage.module.css'
 import dancingFruits from '../assets/dancingFruits.png'
 import googleLogo from '../assets/googleLogo.png'

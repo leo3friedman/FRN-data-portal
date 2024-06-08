@@ -2,8 +2,19 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  margin-top: var(--total-header-height);
-  top: var(--total-header-height);
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 2rem;
+  background-color: var(--secondary-white);
+}
+
+.logout:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .pageHeader {
@@ -53,7 +64,7 @@
   align-items: center;
   gap: 2rem;
   margin: 0;
-  padding: 2rem 0 6rem 0;
+  padding: 2rem 0 4rem 0;
 }
 
 .error {

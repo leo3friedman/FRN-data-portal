@@ -6,6 +6,7 @@ import searchIcon from '../assets/searchIcon.svg'
 import styles from './PickupsPage.module.css'
 import { pickupApiErrors } from '../hooks/enums.js'
 import { useGetPickups } from '../hooks/index.js'
+import { formatDate } from '../utils.js'
 
 export default function PickupsPage() {
   const navigate = useNavigate()
@@ -18,15 +19,24 @@ export default function PickupsPage() {
     fetchPickups()
   }, [])
 
-  function isInQuery(pickup) {
-    const { pickupDate, donorAgency } = pickup
-    const queryInDate =
-      pickupDate &&
-      pickupDate.toLowerCase().includes(String(searchQuery).toLowerCase())
-    const queryInAgency =
-      donorAgency &&
-      donorAgency.toLowerCase().includes(String(searchQuery).toLowerCase())
-    return queryInDate || queryInAgency
+  /**
+   *
+   * @param {string} pickupDate
+   * @param {string} donorAgency
+   * @param {string} query
+   * @returns true if query is in pickup otherwise false
+   */
+  function isInQuery(pickupDate, donorAgency, searchQuery) {
+    try {
+      const query = String(searchQuery).toLowerCase()
+      const date = String(pickupDate).toLowerCase()
+      const donor = String(donorAgency).toLowerCase()
+      const queryInDate = date && date.includes(query)
+      const queryInDonor = donor && donor.includes(query)
+      return queryInDate || queryInDonor
+    } catch (error) {
+      return false
+    }
   }
 
   /**
@@ -46,7 +56,11 @@ export default function PickupsPage() {
   }
 
   useEffect(() => {
-    const filtered = pickups?.length ? pickups.filter(isInQuery) : []
+    const filtered = pickups?.length
+      ? pickups.filter(({ pickupDate, donorAgency }) =>
+          isInQuery(formatDate(pickupDate), donorAgency, searchQuery)
+        )
+      : []
 
     // sort by pickupDate then reverse to see most recent first
     const sorted = filtered.sort(pickupCompare).reverse()

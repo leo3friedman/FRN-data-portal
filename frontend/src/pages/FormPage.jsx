@@ -5,7 +5,6 @@ import arrowLeftIcon from '../assets/arrowLeftIcon.svg'
 import warningIcon from '../assets/warningIcon.svg'
 import styles from './FormPage.module.css'
 import { useParams } from 'react-router-dom'
-
 import {
   useGetPickup,
   useGetNewPickup,
@@ -113,16 +112,57 @@ function Field(props) {
 
 function NumberField(props) {
   const { label, defaultValue, required } = props
+  const [fieldValue, setFieldValue] = useState(defaultValue ?? '0')
+
+  function handleChange(event) {
+    const newValue = event.target.value
+    const prevChar = fieldValue.slice(-1)
+    const addedChar = newValue.slice(-1)
+
+    // always allow delete
+    if (newValue.length < fieldValue.length) {
+      setFieldValue(newValue)
+      return
+    }
+
+    // only allow numbers, +, and .
+    if (isNaN(addedChar) && addedChar !== '+' && addedChar !== '.' || addedChar === ' ') return 
+    
+    // only allow + and . if prevChar was a number
+    if (isNaN(addedChar) && (prevChar === '' || isNaN(prevChar))) return
+  
+    // can only add a decimal place if there was a + separator before (or its the first num), i.e. prevent 2.2.2
+    if (addedChar === '.' && fieldValue.lastIndexOf('+') < fieldValue.lastIndexOf('.')) return
+
+    setFieldValue(newValue)
+  }
+
+  function computeSum() {
+    const splits = fieldValue.split('+')
+    const sum = String(splits.map(val => Number(val)).reduce((a, b) => a + b, 0))
+    setFieldValue(sum)
+  }
+
+  function handleInvalid(event) {
+    if (fieldValue == '') {
+      event.target.setCustomValidity('Please fill out this field.')
+    } else if (isNaN(fieldValue)){
+      event.target.setCustomValidity('Please enter a number.')
+    }
+  }
+
   return (
     <Field
       label={label}
       inputProps={{
-        type: 'number',
-        min: '0',
-        step: '.01',
-        defaultValue: defaultValue ?? '0',
+        pattern:"[0-9]*[.,]?[0-9]+",
+        inputMode: "numeric",
+        value: fieldValue,
         required: required,
         name: label,
+        onInvalid: handleInvalid,
+        onChange: handleChange,
+        onBlur: computeSum
       }}
     />
   )

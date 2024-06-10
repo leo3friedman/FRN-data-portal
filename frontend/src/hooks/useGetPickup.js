@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { pickupApiErrors } from './enums.js'
-import samplePickups from '../assets/samplePickups.json'
+import samplePickup from '../assets/samplePickup.json'
 
 export function useGetPickup(id) {
   const [pickup, setPickup] = useState([])
@@ -13,10 +13,7 @@ export function useGetPickup(id) {
     const mockLoadingTime = 500
     setLoading(true)
     setTimeout(() => {
-      const found = Array.from(samplePickups).find(
-        (sample) => Number(sample.id) === Number(id)
-      )
-      setPickup(found)
+      setPickup(samplePickup)
       setLoading(false)
     }, mockLoadingTime)
   })

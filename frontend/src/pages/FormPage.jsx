@@ -112,7 +112,7 @@ function Field(props) {
 
 function NumberField(props) {
   const { label, defaultValue, required } = props
-  const [fieldValue, setFieldValue] = useState(defaultValue ?? '0')
+  const [fieldValue, setFieldValue] = useState(String(defaultValue) ?? '0')
 
   function handleChange(event) {
     const newValue = event.target.value

@@ -1,6 +1,8 @@
 .stickyContent {
   position: sticky;
   top: 0;
+  margin-top: var(--total-header-height);
+  top: var(--total-header-height);
 }
 
 .returnToPickups {
@@ -35,7 +37,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding-bottom: 4rem;
+  padding-bottom: 6rem;
 }
 
 .formCategoryHeader {
@@ -65,14 +67,14 @@
 
 .fieldContainer input {
   padding: 0.25rem;
-  font-size: 1rem;
   width: 8rem;
+  font: var(--font-body)
 }
 
 .fieldContainer select {
   box-sizing: content-box;
   padding: 0.25rem;
-  font-size: 1rem;
+  font: var(--font-body);
   width: 8rem;
 }
 
@@ -84,4 +86,60 @@
 .error {
   color: red;
   margin-top: 1rem;
+}
+
+.modalCanvas {
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+
+.modalWindow {
+  width: 75%;
+  max-width: 400px;
+  aspect-ratio: 1/1;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  padding: 1rem;
+  background-color: var(--secondary-white);
+  border: 0.25rem solid var(--caution-red);
+  border-radius: 4px;
+  justify-content: center;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.modalIcon {
+  width: 3rem;
+}
+
+.modalTitle {
+  font: var(--font-secondary-header);
+  font-weight: bold;
+  margin: 0;
+}
+
+.modalSubtitle {
+  font: var(--font-small);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
 }

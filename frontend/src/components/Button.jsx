@@ -9,6 +9,8 @@ export default function Button(props) {
     default: 'defaultSize',
   }
 
+  
+
   const sizeClass = sizeClasses.hasOwnProperty(size)
     ? sizeClasses[size]
     : sizeClasses.default

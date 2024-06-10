@@ -1,28 +1,19 @@
 import { useState, useCallback } from 'react'
 import { pickupApiErrors } from './enums.js'
 
-export default function putPickup(pickupId) {
+export function usePutNewPickup() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(undefined)
   const [success, setSuccess] = useState(false)
 
-  const mockSubmit = () => {
-    const mockLoadingTime = 500
-    setLoading(true)
-    setTimeout(() => {
-      setSuccess(true)
-      setLoading(false)
-    }, mockLoadingTime)
-  }
-
-  const realSubmit = useCallback(async (pickup) => {
+  const submitPickup = useCallback(async (pickup) => {
     try {
       const pickupList = Object.entries(pickup).map(([key, value]) => {
-        return { "Form Label": key, "Value": value };
+        return { 'Form Label': key, Value: value }
       })
       setLoading(true)
       const expressUrl = import.meta.env.VITE_EXPRESS_URL
-      const response = await fetch(`${expressUrl}/api/pickups/${pickupId}`, {
+      const response = await fetch(`${expressUrl}/api/pickups/new`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -51,6 +42,6 @@ export default function putPickup(pickupId) {
     submitLoading: loading,
     submitError: error,
     submitSuccess: success,
-    submitPickup: import.meta.env.VITE_MOCK_BACKEND ? mockSubmit : realSubmit,
+    submitPickup,
   }
 }

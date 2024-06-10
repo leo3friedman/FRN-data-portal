@@ -2,29 +2,30 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, PageLayout, LoadingCircle } from '../components/index.js'
 import arrowLeftIcon from '../assets/arrowLeftIcon.svg'
+import warningIcon from '../assets/warningIcon.svg'
 import styles from './FormPage.module.css'
 import { useParams } from 'react-router-dom'
 
 import {
-  getPickup,
-  getNewPickup,
-  putPickup,
-  putNewPickup,
+  useGetPickup,
+  useGetNewPickup,
+  usePutPickup,
+  usePutNewPickup,
   useDeletePickup,
-} from '../api/index.js'
-import { pickupApiErrors } from '../api/enums.js'
+} from '../hooks/index.js'
+import { pickupApiErrors } from '../hooks/enums.js'
 
 export default function FormPage(props) {
   const { isNewPickup } = props
   const { pickupId } = useParams()
 
   const getPickupHook = isNewPickup
-    ? () => getNewPickup()
-    : () => getPickup(pickupId)
+    ? () => useGetNewPickup()
+    : () => useGetPickup(pickupId)
 
   const submitPickupHook = isNewPickup
-    ? () => putNewPickup()
-    : () => putPickup(pickupId)
+    ? () => usePutNewPickup()
+    : () => usePutPickup(pickupId)
 
   const navigate = useNavigate()
 
@@ -73,7 +74,7 @@ export default function FormPage(props) {
   }
 
   return (
-    <PageLayout>
+    <PageLayout showLogout>
       <div className={styles.stickyContent}>
         <nav className={styles.returnToPickups} onClick={() => navigate('/')}>
           <img src={arrowLeftIcon} />
@@ -118,7 +119,8 @@ function NumberField(props) {
       inputProps={{
         type: 'number',
         min: '0',
-        defaultValue: defaultValue,
+        step: '.01',
+        defaultValue: defaultValue ?? '0',
         required: required,
         name: label,
       }}
@@ -149,7 +151,7 @@ function TextField(props) {
       inputProps={{
         type: 'text',
         required: required,
-        defaultValue: defaultValue,
+        defaultValue: defaultValue ?? '',
         name: label,
       }}
     />
@@ -169,7 +171,7 @@ function SelectField(props) {
           Select One
         </option>
         {selectOptions?.length &&
-          selectOptions?.map((option) => <option>{option}</option>)}
+          selectOptions?.map((option) => <option key={option}>{option}</option>)}
       </select>
     </div>
   )
@@ -211,7 +213,7 @@ function FormCategory(props) {
         {fields?.length &&
           fields.map((field) => {
             return (
-              <li>
+              <li key={field?.label}>
                 <FormField {...field} />
               </li>
             )
@@ -234,6 +236,8 @@ function PickupForm(props) {
     deleteError,
     handleDelete,
   } = props
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const formBlueprint = pickup.reduce((blueprint, fieldInfo) => {
     const fieldCategory = fieldInfo?.['Form Category']
@@ -281,7 +285,7 @@ function PickupForm(props) {
   return (
     <form className={styles.pickupForm} onSubmit={onFormSubmit}>
       {formBlueprint?.length ? (
-        formBlueprint.map((category) => <FormCategory {...category} />)
+        formBlueprint.map((category, index) => <FormCategory key={index} {...category} />)
       ) : (
         <div className={styles.error}>
           Sorry, unable to build form. Please click <a href=''>here</a> to try
@@ -290,15 +294,33 @@ function PickupForm(props) {
       )}
       <div>
         <div className={styles.submitContainer}>
-          <Button size='small' type='submit' loading={submitLoading}>
+          <Button
+            size='small'
+            type='submit'
+            loading={submitLoading}
+            buttonProps={{
+              style: {
+                color: 'var(--secondary-white)',
+                backgroundColor: 'var(--primary-green)',
+              },
+            }}>
             {isNewPickup ? 'Submit Pickup' : 'Submit Changes'}
           </Button>
           {!isNewPickup && (
             <div>
               <Button
                 size='small'
-                onClick={handleDelete}
-                loading={deleteLoading}>
+                onClick={(event) => {
+                  event.preventDefault()
+                  setIsModalOpen(true)
+                }}
+                loading={deleteLoading}
+                buttonProps={{
+                  style: {
+                    color: 'var(--secondary-white)',
+                    backgroundColor: 'var(--caution-red)',
+                  },
+                }}>
                 Delete Pickup
               </Button>
             </div>
@@ -316,7 +338,52 @@ function PickupForm(props) {
             Error deleting pickup. Please try again later.
           </div>
         )}
+
+        <DeleteModal
+          isOpen={isModalOpen}
+          onClose={(event) => {
+            event.preventDefault()
+            setIsModalOpen(false)
+          }}
+          deleteLoading={deleteLoading}
+          onDelete={handleDelete}
+        />
       </div>
     </form>
+  )
+}
+
+function DeleteModal({ onDelete, isOpen, onClose, deleteLoading }) {
+  // TODO: make more accessible (listen for esc keypress, add x icon in corner)
+
+  return (
+    <>
+      {isOpen && (
+        <div className={styles.modalCanvas}>
+          <div className={styles.modalWindow}>
+            <div className={styles.modalContent}>
+              <img src={warningIcon} className={styles.modalIcon}></img>
+              <h2 className={styles.modalTitle}>
+                Are you sure you want to delete this pickup?
+              </h2>
+              <div className={styles.modalSubtitle}>
+                You will not be able to undo this decision
+              </div>
+              <div className={styles.modalActions}>
+                <Button
+                  size={'small'}
+                  onClick={onDelete}
+                  loading={deleteLoading}>
+                  Yes, delete Pickup
+                </Button>
+                <Button size={'small'} onClick={onClose}>
+                  No
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

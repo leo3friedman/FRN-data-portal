@@ -1,8 +1,68 @@
 .page {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+}
+
+.pageContentContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.pageHeader {
+  height: var(--header-height);
+  position: fixed;
+  width: 100%;
+  background-color: var(--primary-green);
+  border-bottom: solid var(--header-border-width) var(--primary-lime-green);
+  z-index: 10;
+}
+
+.headerNav {
+  padding: 2rem 3rem 0rem 3rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.headerNav button {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--secondary-white);
+}
+
+.headerNav button:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.headerNav button img {
+  filter: invert(100%) sepia(3%) saturate(2226%) hue-rotate(152deg)
+    brightness(126%) contrast(112%);
 }
 
 .pageContent {
   width: calc(var(--pickup-width) + 1rem);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.pageFooter {
+  position: relative;
+  height: 3rem;
+  width: 100%;
+  background-color: var(--primary-green);
+  border-top: solid 0.5rem var(--primary-lime-green);
+}
+
+.pageFooter .groceryBag {
+  position: absolute;
+  bottom: 0;
+  height: 128px;
 }

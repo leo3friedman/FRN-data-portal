@@ -91,8 +91,6 @@ router.get('/oauth2callback', async (req, res) => {
     // store token in memory for later verification
     userTokens.push(token)
 
-    console.log(`added new token: ${token}`, { userTokens })
-
     return res.redirect(process.env.CLIENT_URL)
   } catch (error) {
     const errorMessage = `Authentication failed. Please try again later. Error Code: 500`

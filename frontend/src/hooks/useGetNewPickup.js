@@ -1,32 +1,22 @@
 import { useState, useCallback } from 'react'
 import { pickupApiErrors } from './enums.js'
-import samplePickups from '../assets/samplePickups.json'
 
-export default function getPickups() {
-  const [pickups, setPickups] = useState([])
+export function useGetNewPickup() {
+  const [pickup, setPickup] = useState([])
 
   // set loading default to true to prevent flash, TODO: is there a better way?
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(undefined)
 
-  const mockFetch = useCallback(() => {
-    const mockLoadingTime = 500
-    setLoading(true)
-    setTimeout(() => {
-      setPickups(samplePickups ?? [])
-      setLoading(false)
-    }, mockLoadingTime)
-  })
-
-  const realFetch = useCallback(async () => {
+  const fetchPickup = useCallback(async () => {
     try {
       setLoading(true)
       const expressUrl = import.meta.env.VITE_EXPRESS_URL
-      const response = await fetch(`${expressUrl}/api/pickups`, {
+      const URL = `${expressUrl}/api/pickups/new`
+      const response = await fetch(URL, {
         method: 'GET',
         credentials: 'include',
       })
-
       if (!response.ok) {
         if (response.status === 401) {
           return setError(pickupApiErrors.NOT_SIGNED_IN)
@@ -34,21 +24,20 @@ export default function getPickups() {
           return setError(pickupApiErrors.UNKNOWN_ERROR)
         }
       }
-
       const result = await response.json()
-      setPickups(result)
+      setPickup(result)
     } catch (error) {
-      setError(pickupApiErrors.UNKNOWN_ERROR)
       console.log(error)
+      return setError(pickupApiErrors.UNKNOWN_ERROR)
     } finally {
       setLoading(false)
     }
   }, [])
 
   return {
-    pickups,
-    pickupsLoading: loading,
-    pickupsError: error,
-    fetchPickups: import.meta.env.VITE_MOCK_BACKEND ? mockFetch : realFetch,
+    pickup,
+    pickupLoading: loading,
+    pickupError: error,
+    fetchPickup,
   }
 }

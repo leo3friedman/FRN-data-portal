@@ -1,39 +1,33 @@
 import { useState, useCallback } from 'react'
 import { pickupApiErrors } from './enums.js'
+import samplePickups from '../assets/samplePickups.json'
 
-/**
- * @typedef {Object} DeleteStatus
- * @property {boolean} deleteLoading
- * @property {string|undefined} error
- * @property {boolean} success
- */
+export function useGetPickup(id) {
+  const [pickup, setPickup] = useState([])
 
-/**
- *
- * @param {String} pickupId
- * @returns {DeleteStatus}
- */
-export default function useDeletePickup(pickupId) {
-  const [loading, setLoading] = useState(false)
+  // set loading default to true to prevent flash, TODO: is there a better way?
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(undefined)
-  const [success, setSuccess] = useState(false)
 
-  const mockDelete = useCallback(() => {
+  const mockFetch = useCallback(() => {
     const mockLoadingTime = 500
     setLoading(true)
     setTimeout(() => {
+      const found = Array.from(samplePickups).find(
+        (sample) => Number(sample.id) === Number(id)
+      )
+      setPickup(found)
       setLoading(false)
-      setSuccess(true)
     }, mockLoadingTime)
   })
 
-  const realDelete = useCallback(async () => {
+  const realFetch = useCallback(async () => {
     try {
       setLoading(true)
       const expressUrl = import.meta.env.VITE_EXPRESS_URL
-      const URL = `${expressUrl}/api/pickups/delete/${pickupId}`
+      const URL = `${expressUrl}/api/pickups/${id}`
       const response = await fetch(URL, {
-        method: 'DELETE',
+        method: 'GET',
         credentials: 'include',
       })
       if (!response.ok) {
@@ -43,7 +37,8 @@ export default function useDeletePickup(pickupId) {
           return setError(pickupApiErrors.UNKNOWN_ERROR)
         }
       }
-      setSuccess(true)
+      const result = await response.json()
+      setPickup(result)
     } catch (error) {
       console.log(error)
       return setError(pickupApiErrors.UNKNOWN_ERROR)
@@ -53,9 +48,9 @@ export default function useDeletePickup(pickupId) {
   }, [])
 
   return {
-    deleteSuccess: success,
-    deleteLoading: loading,
-    deleteError: error,
-    deletePickup: import.meta.env.VITE_MOCK_BACKEND ? mockDelete : realDelete,
+    pickup,
+    pickupLoading: loading,
+    pickupError: error,
+    fetchPickup: import.meta.env.VITE_MOCK_BACKEND ? mockFetch : realFetch,
   }
 }

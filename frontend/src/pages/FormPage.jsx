@@ -156,7 +156,6 @@ function NumberField(props) {
       label={label}
       inputProps={{
         pattern:"[0-9]*[.,]?[0-9]+",
-        inputMode: "numeric",
         value: fieldValue,
         required: required,
         name: label,

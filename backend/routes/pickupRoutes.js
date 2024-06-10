@@ -52,6 +52,7 @@ router.get("/pickups", async (req, res) => {
         id: pickup?.["Id"],
         pickupDate: pickup?.["Pickup Date"],
         donorAgency: pickup?.["Donor Agency"],
+        leadInitials: pickup?.["Lead Initials"]
       }
     })
 
@@ -426,13 +427,6 @@ router.put("/pickups/:pickupId", async (req, res) => {
           resource,
         })
       }
-
-      // OLD CODE: I think this is deprecated?
-      // if (id !== updatedPickup["Id"]) {
-      //   return res
-      //     .status(403)
-      //     .json({ error: "Pickup id must match updated pickup data" })
-      // }
 
       // parse pickup data for where the id matches and define range to update
       const indexOfRowToUpdate = pickupValues.findIndex(

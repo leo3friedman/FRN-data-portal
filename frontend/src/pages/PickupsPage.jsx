@@ -26,8 +26,15 @@ export default function PickupsPage() {
    * @param {string} query
    * @returns true if query is in pickup otherwise false
    */
-  function isInQuery(pickupDate, donorAgency, searchQuery) {
+  function isInQuery(pickupDate, donorAgency, leadInitials, searchQuery) {
     try {
+      const searchInitials = searchQuery.startsWith('initials:')
+
+      if (searchInitials) {
+        const initialQuery = searchQuery.replace('initials:', '').toLowerCase()
+        return leadInitials && leadInitials.toLowerCase().includes(initialQuery)
+      }
+
       const query = String(searchQuery).toLowerCase()
       const date = String(pickupDate).toLowerCase()
       const donor = String(donorAgency).toLowerCase()
@@ -57,8 +64,13 @@ export default function PickupsPage() {
 
   useEffect(() => {
     const filtered = pickups?.length
-      ? pickups.filter(({ pickupDate, donorAgency }) =>
-          isInQuery(formatDate(pickupDate), donorAgency, searchQuery)
+      ? pickups.filter(({ pickupDate, donorAgency, leadInitials }) =>
+          isInQuery(
+            formatDate(pickupDate),
+            donorAgency,
+            leadInitials,
+            searchQuery
+          )
         )
       : []
 

@@ -1,0 +1,115 @@
+[
+  {
+    "Form Category": "Vendor Information",
+    "Form Label": "Pickup Date",
+    "Form Type": "Date",
+    "Required": "TRUE",
+    "Value": "2024-06-09"
+  },
+  {
+    "Form Category": "Vendor Information",
+    "Form Label": "Donor Agency",
+    "Form Type": "Select",
+    "Required": "TRUE",
+    "Select Options": "Hillcrest,Green Light Cafe,Sunshine Market,99 Ranch #39,Nijiya Market,64 Degrees,UCSD Farmer's Market,Sprouts,Target,99 Ranch #1016,Ralphs,Art of Espresso,Other",
+    "Value": "Hillcrest"
+  },
+  {
+    "Form Category": "Vendor Information",
+    "Form Label": "Lead Initials",
+    "Form Type": "Text",
+    "Required": "TRUE",
+    "Value": "LF"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Produce",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Dry",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Prepared",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "10"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Meat",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Dairy",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Bakery",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Frozen",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Beverages",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Weights",
+    "Form Label": "Non-Food",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Temperatures",
+    "Form Label": "Refridgerated Start",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Temperatures",
+    "Form Label": "Refridgerated End",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Temperatures",
+    "Form Label": "Frozen Start",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  },
+  {
+    "Form Category": "Temperatures",
+    "Form Label": "Frozen End",
+    "Form Type": "Number",
+    "Required": "TRUE",
+    "Value": "0"
+  }
+]

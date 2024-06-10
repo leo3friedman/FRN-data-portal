@@ -28,14 +28,13 @@ export default function PickupsPage() {
    */
   function isInQuery(pickupDate, donorAgency, leadInitials, searchQuery) {
     try {
-      const searchInitials = searchQuery.startsWith('initials:')
-
+      const query = String(searchQuery).toLowerCase()
+      const searchInitials = query.toLowerCase().startsWith(':')
       if (searchInitials) {
-        const initialQuery = searchQuery.replace('initials:', '').toLowerCase()
+        const initialQuery = query.replace(':', '')
         return leadInitials && leadInitials.toLowerCase().includes(initialQuery)
       }
 
-      const query = String(searchQuery).toLowerCase()
       const date = String(pickupDate).toLowerCase()
       const donor = String(donorAgency).toLowerCase()
       const queryInDate = date && date.includes(query)

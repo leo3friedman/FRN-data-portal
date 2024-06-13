@@ -13,6 +13,9 @@ import {
   useDeletePickup,
 } from '../hooks/index.js'
 import { pickupApiErrors } from '../hooks/enums.js'
+import { create, all } from 'mathjs';
+
+const math = create(all);
 
 export default function FormPage(props) {
   const { isNewPickup } = props
@@ -115,39 +118,44 @@ function NumberField(props) {
   const [fieldValue, setFieldValue] = useState(String(defaultValue) ?? '0')
 
   function handleChange(event) {
+    // hide error message when they type
+    event.target.setCustomValidity('')
+
     const newValue = event.target.value
-    const prevChar = fieldValue.slice(-1)
-    const addedChar = newValue.slice(-1)
-
-    // always allow delete
-    if (newValue.length < fieldValue.length) {
-      setFieldValue(newValue)
-      return
-    }
-
-    // only allow numbers, +, and .
-    if (isNaN(addedChar) && addedChar !== '+' && addedChar !== '.' || addedChar === ' ') return 
-    
-    // only allow + and . if prevChar was a number
-    if (isNaN(addedChar) && (prevChar === '' || isNaN(prevChar))) return
-  
-    // can only add a decimal place if there was a + separator before (or its the first num), i.e. prevent 2.2.2
-    if (addedChar === '.' && fieldValue.lastIndexOf('+') < fieldValue.lastIndexOf('.')) return
-
     setFieldValue(newValue)
   }
 
-  function computeSum() {
-    const splits = fieldValue.split('+')
-    const sum = String(splits.map(val => Number(val)).reduce((a, b) => a + b, 0))
-    setFieldValue(sum)
+  function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      setFieldValue(computeSum(fieldValue))
+    }
+  }
+
+  function handleBlur() {
+    const solution = computeSum(fieldValue)
+    setFieldValue(solution)
+  }
+
+  function computeSum(expression) {
+    try {
+      if (expression === '') return '0'
+      const evaluation = math.evaluate(expression)
+      return evaluation
+    } catch (error) {
+      return expression
+    }
   }
 
   function handleInvalid(event) {
     if (fieldValue == '') {
       event.target.setCustomValidity('Please fill out this field.')
-    } else if (isNaN(fieldValue)){
+    } else if (!math.isNumeric(fieldValue)){
       event.target.setCustomValidity('Please enter a number.')
+    } else if (math.isNegative(fieldValue)) {
+      event.target.setCustomValidity('Number must be positive.')
+    } else {
+      event.target.setCustomValidity('Please enter a positive number.')
     }
   }
 
@@ -161,7 +169,8 @@ function NumberField(props) {
         name: label,
         onInvalid: handleInvalid,
         onChange: handleChange,
-        onBlur: computeSum
+        onBlur: handleBlur,
+        onKeyPress: handleKeyPress
       }}
     />
   )

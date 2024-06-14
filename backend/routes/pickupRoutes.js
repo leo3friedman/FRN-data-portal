@@ -89,7 +89,7 @@ router.get('/pickups/new', async (req, res) => {
         // First check if the key we are trying to format is the value
         if (key === 'Value') {
           if (column_object['Form Type'] === 'Date') {
-            column_object[key] = toPickupDate()
+            column_object[key] = todaysDate()
           } else if (column_object['Form Type'] === 'Number') {
             column_object[key] = 0
           } else {
@@ -181,7 +181,7 @@ router.get('/pickups/:pickupId', async (req, res) => {
       return_format.forEach((key) => {
         if (key === 'Value') {
           if (pickup_object['Form Type'] === 'Date') {
-            pickup_object[key] = toPickupDate()
+            pickup_object[key] = todaysDate()
           } else if (pickup_object['Form Type'] === 'Number') {
             pickup_object[key] = 0
           } else {
@@ -282,7 +282,7 @@ router.put('/pickups/new', async (req, res) => {
       newPickupFormLabels.push('Id')
 
       // set last updated to now
-      pickupJson['Last Updated Date'] = toPickupDate()
+      pickupJson['Last Updated Date'] = todaysDate()
       newPickupFormLabels.push('Last Updated Date')
 
       // Mark deprecated columns
@@ -413,7 +413,7 @@ router.put('/pickups/:pickupId', async (req, res) => {
       })
 
       // set last updated to now
-      pickupJson['Last Updated Date'] = toPickupDate()
+      pickupJson['Last Updated Date'] = todaysDate()
       updatedPickupFormLabels.push('Last Updated Date')
 
       // Mark deprecated columns
@@ -542,17 +542,20 @@ router.delete('/pickups/delete/:pickupId', async (req, res) => {
   }
 })
 
-// Assuming all pickup operations occur in PST
-function toPickupDate(pastDate = Date.now()) {
-  try {
-    const date = new Date(pastDate)
-    const offset = date.getTimezoneOffset()
-    const myDate = new Date(date.getTime() - offset * 60 * 1000)
-    return myDate.toISOString().split('T')[0]
-  } catch (error) {
-    console.log(error)
-    return pastDate
-  }
+/**
+ *
+ * @returns date of today (PST) in format yyyy-mm-dd
+ */
+function todaysDate() {
+  const dateTime = new Date()
+  const dateTimeStr = dateTime.toLocaleString('en-US', {
+    timeZone: 'America/Los_Angeles',
+  })
+  const date = dateTimeStr.split(',')[0]
+  const [month, day, year] = date.split('/')
+  const monthPadded = `0${month}`.slice(-2)
+  const dayPadded = `0${day}`.slice(-2)
+  return `${year}-${monthPadded}-${dayPadded}`
 }
 
 export async function getValidEmails() {

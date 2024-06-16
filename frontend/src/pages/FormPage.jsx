@@ -141,6 +141,10 @@ function NumberField(props) {
     try {
       if (expression === '') return '0'
       const evaluation = math.evaluate(expression)
+      const numStr = evaluation.toString();
+      if (numStr.includes('.') && numStr.split('.')[1].length > 2) {
+        return evaluation.toFixed(2)
+      }
       return evaluation
     } catch (error) {
       return expression
